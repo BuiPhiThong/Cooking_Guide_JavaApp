@@ -42,22 +42,31 @@ public class LoginSuccessActivity extends AppCompatActivity {
         userInfoTextView.setText(userInfo);
     }
 
-    private void setupClickListeners() {
-        continueButton.setOnClickListener(v -> {
-            // Chuyển sang MainActivity hoặc màn hình chính
-            Intent intent = new Intent(this, MainActivity.class);
-            // Truyền thông tin user
-            intent.putExtras(getIntent().getExtras());
-            startActivity(intent);
-            finish();
-        });
+//    private void setupClickListeners() {
+//        continueButton.setOnClickListener(v -> {
+//            // Chuyển sang MainActivity hoặc màn hình chính
+//            Intent intent = new Intent(this, MainActivity.class);
+//            // Truyền thông tin user
+//            intent.putExtras(getIntent().getExtras());
+//            startActivity(intent);
+//            finish();
+//        });
+//
+//        logoutButton.setOnClickListener(v -> {
+//            // Quay lại màn hình đăng nhập
+//            Intent intent = new Intent(this, LoginActivity.class);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startActivity(intent);
+//            finish();
+//        });
+//    }
+private void setupClickListeners() {
+    continueButton.setOnClickListener(v -> {
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.putExtras(getIntent().getExtras());
+        startActivity(intent);
+        finish();
+    });
+}
 
-        logoutButton.setOnClickListener(v -> {
-            // Quay lại màn hình đăng nhập
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-        });
-    }
 }
