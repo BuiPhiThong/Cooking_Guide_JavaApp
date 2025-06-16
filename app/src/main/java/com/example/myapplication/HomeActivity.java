@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.EditText;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.entity.FavoriteDishAdapter;
 import com.example.myapplication.entity.RecentDish;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.myapplication.entity.CategoryAdapter;
@@ -25,10 +27,10 @@ public class HomeActivity extends AppCompatActivity {
     private TextView userNameTextView;
     private ImageView profileImageView, notificationImageView;
     private EditText searchEditText;
-    private RecyclerView categoryRecyclerView, recentDishRecyclerView;
+    private RecyclerView favoriteDishRecyclerView, recentDishRecyclerView; // Đổi tên categoryRecyclerView
     private BottomNavigationView bottomNavigationView;
 
-    private CategoryAdapter categoryAdapter;
+    private FavoriteDishAdapter favoriteDishAdapter; // Thay CategoryAdapter
     private RecentDishAdapter recentDishAdapter;
     private int currentUserId;
 
@@ -39,9 +41,10 @@ public class HomeActivity extends AppCompatActivity {
 
         initViews();
         setupUserInfo();
-        setupCategories();
+        loadMostFavoriteDishes(); // Thay setupCategories()
         loadRecentDishes();
         setupBottomNavigation();
+        setupViewAllClick();
     }
 
     private void initViews() {
@@ -49,7 +52,7 @@ public class HomeActivity extends AppCompatActivity {
         profileImageView = findViewById(R.id.profileImageView);
         notificationImageView = findViewById(R.id.notificationImageView);
         searchEditText = findViewById(R.id.searchEditText);
-        categoryRecyclerView = findViewById(R.id.categoryRecyclerView);
+        favoriteDishRecyclerView = findViewById(R.id.categoryRecyclerView); // Sử dụng lại RecyclerView cũ
         recentDishRecyclerView = findViewById(R.id.recentDishRecyclerView);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
     }
@@ -64,27 +67,68 @@ public class HomeActivity extends AppCompatActivity {
         notificationImageView.setOnClickListener(v -> openNotifications());
     }
 
-    private void setupCategories() {
-        List<Category> categories = new ArrayList<>();
-        categories.add(new Category("Khoai lang", R.drawable.ic_potato));
-        categories.add(new Category("Gà rán", R.drawable.ic_chicken));
-        categories.add(new Category("Mỳ xào", R.drawable.ic_noodles));
-        categories.add(new Category("Thịt rang cháy cạnh", R.drawable.ic_meat));
-        categories.add(new Category("Bún bò", R.drawable.ic_bowl));
-        categories.add(new Category("Phở", R.drawable.ic_pho));
+    // THAY ĐỔI: Load món được yêu thích nhiều nhất thay vì categories cố định
+    private void loadMostFavoriteDishes() {
+        Log.d("HomeActivity", "Loading most favorite dishes...");
 
-        categoryAdapter = new CategoryAdapter(categories, this::onCategoryClick);
-        categoryRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        categoryRecyclerView.setAdapter(categoryAdapter);
+        DishDAO.getMostFavoriteDishes(6, new DishDAO.DishCallback() {
+            @Override
+            public void onSuccess(List<Dish> dishes) {
+                Log.d("HomeActivity", "Received " + dishes.size() + " favorite dishes");
 
-        // Thêm click listener cho "Tất cả các món ăn"
-        TextView allDishesTextView = findViewById(R.id.allDishesTextView); // ID của TextView "Tất cả các món ăn"
-        allDishesTextView.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AllDishesActivity.class);
-            intent.putExtra("USER_ID", currentUserId);
-            startActivity(intent);
+                if (dishes.size() > 0) {
+                    for (Dish dish : dishes) {
+                        Log.d("HomeActivity", "Dish: " + dish.getName());
+                    }
+
+                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this::onFavoriteDishClick);
+                    favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+                    favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
+
+                    Log.d("HomeActivity", "Adapter set successfully");
+                } else {
+                    Log.w("HomeActivity", "No favorite dishes found, loading all dishes as fallback");
+                    loadAllDishesAsFallback();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("HomeActivity", "Error loading favorite dishes: " + error);
+                Toast.makeText(HomeActivity.this, "Lỗi tải món yêu thích: " + error, Toast.LENGTH_SHORT).show();
+                // Fallback: load all dishes
+                loadAllDishesAsFallback();
+            }
         });
     }
+
+    // Thêm method fallback
+    private void loadAllDishesAsFallback() {
+        DishDAO.getAllDishes(new DishDAO.DishCallback() {
+            @Override
+            public void onSuccess(List<Dish> dishes) {
+                Log.d("HomeActivity", "Fallback: Loaded " + dishes.size() + " dishes");
+
+                // Lấy 6 món đầu tiên
+                List<Dish> firstSix = dishes.subList(0, Math.min(6, dishes.size()));
+
+                favoriteDishAdapter = new FavoriteDishAdapter(firstSix, HomeActivity.this::onFavoriteDishClick);
+                favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+                favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
+
+                Toast.makeText(HomeActivity.this, "Hiển thị " + firstSix.size() + " món ăn", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("HomeActivity", "Fallback also failed: " + error);
+                Toast.makeText(HomeActivity.this, "Không thể tải dữ liệu", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Thêm method fallback
+
 
     private void loadRecentDishes() {
         DishDAO.getRecentDishes(new DishDAO.DishCallback() {
@@ -122,10 +166,18 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void onCategoryClick(Category category) {
-        Intent intent = new Intent(this, CategoryDetailActivity.class);
-        intent.putExtra("CATEGORY_NAME", category.getName());
-        startActivity(intent);
+    private void setupViewAllClick() {
+        TextView allDishesTextView = findViewById(R.id.allDishesTextView);
+        allDishesTextView.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AllDishesActivity.class);
+            intent.putExtra("USER_ID", currentUserId);
+            startActivity(intent);
+        });
+    }
+
+    private void onFavoriteDishClick(Dish dish) {
+        Toast.makeText(this, "Món được yêu thích: " + dish.getName(), Toast.LENGTH_SHORT).show();
+        // TODO: Chuyển sang màn hình chi tiết món ăn
     }
 
     private void onRecentDishClick(RecentDish recentDish) {
@@ -149,7 +201,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private String calculateTimeAgo(String createdAt) {
-        // Tính toán thời gian đã qua (đơn giản hóa)
         return "Cách đây 5 ngày";
     }
 }

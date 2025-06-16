@@ -1,6 +1,8 @@
 package com.example.myapplication.dao;
 
 import android.os.AsyncTask;
+import android.util.Log;
+
 import com.example.myapplication.connnectDB.DatabaseConnection;
 import com.example.myapplication.entity.Dish;
 import java.sql.Connection;
@@ -164,6 +166,69 @@ public class DishDAO {
                 if (result instanceof List) {
                     callback.onSuccess((List<Dish>) result);
                 } else {
+                    callback.onError(result.toString());
+                }
+            }
+        }.execute();
+    }
+
+    public static void getMostFavoriteDishes(int limit, DishCallback callback) {
+        new AsyncTask<Void, Void, Object>() {
+            @Override
+            protected Object doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        // Query đơn giản hóa để debug
+                        String query = "SELECT TOP " + limit + " d.* " +
+                                "FROM Dishes d " +
+                                "INNER JOIN User_Favorites uf ON d.id = uf.dishes_id " +
+                                "GROUP BY d.id, d.name, d.description, d.user_id, d.image_url, " +
+                                "d.cooking_steps, d.ingredient, d.difficulty_level, d.created_at " +
+                                "ORDER BY COUNT(uf.dishes_id) DESC";
+
+                        Log.d("DishDAO", "Query: " + query);
+
+                        PreparedStatement statement = connection.prepareStatement(query);
+                        ResultSet resultSet = statement.executeQuery();
+
+                        List<Dish> dishes = new ArrayList<>();
+                        while (resultSet.next()) {
+                            Dish dish = new Dish();
+                            dish.setId(resultSet.getInt("id"));
+                            dish.setName(resultSet.getString("name"));
+                            dish.setDescription(resultSet.getString("description"));
+                            dish.setUserId(resultSet.getInt("user_id"));
+                            dish.setImageUrl(resultSet.getString("image_url"));
+                            dish.setCookingSteps(resultSet.getString("cooking_steps"));
+                            dish.setIngredient(resultSet.getString("ingredient"));
+                            dish.setDifficultyLevel(resultSet.getString("difficulty_level"));
+                            dish.setCreatedAt(resultSet.getString("created_at"));
+                            dishes.add(dish);
+
+                            Log.d("DishDAO", "Added dish: " + dish.getName());
+                        }
+
+                        Log.d("DishDAO", "Total dishes found: " + dishes.size());
+                        connection.close();
+                        return dishes;
+                    } else {
+                        return "Connection failed";
+                    }
+                } catch (Exception e) {
+                    Log.e("DishDAO", "Error: " + e.getMessage());
+                    return e.getMessage();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Object result) {
+                if (result instanceof List) {
+                    List<Dish> dishes = (List<Dish>) result;
+                    Log.d("DishDAO", "Returning " + dishes.size() + " dishes to callback");
+                    callback.onSuccess(dishes);
+                } else {
+                    Log.e("DishDAO", "Error: " + result.toString());
                     callback.onError(result.toString());
                 }
             }

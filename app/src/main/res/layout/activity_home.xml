@@ -80,22 +80,35 @@
                 android:textColorHint="#999999"
                 android:textSize="14sp" />
 
-            <!-- Categories Section -->
-            <!-- Categories Section -->
-            <TextView
-                android:id="@+id/allDishesTextView"
-                android:layout_width="wrap_content"
+            <!-- Favorite Dishes Section Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="Tất cả các món ăn"
-                android:textColor="#333333"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="8dp" />
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Món ăn được yêu thích"
+                    android:textColor="#333333"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
-            <!-- Categories Grid -->
+                <TextView
+                    android:id="@+id/allDishesTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tất cả các món ăn"
+                    android:textColor="#FF6B35"
+                    android:textSize="14sp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="8dp" />
+
+            </LinearLayout>
+
+            <!-- Most Favorite Dishes Grid (thay thế Categories) -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/categoryRecyclerView"
                 android:layout_width="match_parent"
