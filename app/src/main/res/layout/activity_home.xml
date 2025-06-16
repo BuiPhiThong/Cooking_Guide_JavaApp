@@ -81,14 +81,19 @@
                 android:textSize="14sp" />
 
             <!-- Categories Section -->
+            <!-- Categories Section -->
             <TextView
+                android:id="@+id/allDishesTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="Món ăn được yêu thích"
+                android:text="Tất cả các món ăn"
                 android:textColor="#333333"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="8dp" />
+
 
             <!-- Categories Grid -->
             <androidx.recyclerview.widget.RecyclerView

@@ -6,7 +6,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.myapplication.entity.DishAdapter;
+//import com.example.myapplication.entity.;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.List;
 public class CategoryDetailActivity extends AppCompatActivity {
     private TextView categoryTitleTextView;
     private RecyclerView dishRecyclerView;
-    private DishAdapter dishAdapter;
+    private com.example.myapplication.adapter.DishAdapter dishAdapter;
     private List<Dish> dishList;
 
     @Override
@@ -38,7 +38,7 @@ public class CategoryDetailActivity extends AppCompatActivity {
         categoryTitleTextView.setText(categoryName);
 
         dishList = new ArrayList<>();
-        dishAdapter = new DishAdapter(dishList, this::onDishClick, this::onFavoriteClick);
+        dishAdapter = new com.example.myapplication.adapter.DishAdapter(dishList, this::onDishClick, this::onFavoriteClick);
         dishRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         dishRecyclerView.setAdapter(dishAdapter);
     }

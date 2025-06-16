@@ -76,6 +76,14 @@ public class HomeActivity extends AppCompatActivity {
         categoryAdapter = new CategoryAdapter(categories, this::onCategoryClick);
         categoryRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         categoryRecyclerView.setAdapter(categoryAdapter);
+
+        // Thêm click listener cho "Tất cả các món ăn"
+        TextView allDishesTextView = findViewById(R.id.allDishesTextView); // ID của TextView "Tất cả các món ăn"
+        allDishesTextView.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AllDishesActivity.class);
+            intent.putExtra("USER_ID", currentUserId);
+            startActivity(intent);
+        });
     }
 
     private void loadRecentDishes() {
