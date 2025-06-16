@@ -1,5 +1,4 @@
-package com.example.myapplication.entity;
-
+package com.example.myapplication.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +15,7 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
     private List<Dish> dishes;
     private OnDishClickListener dishClickListener;
     private OnFavoriteClickListener favoriteClickListener;
+    private boolean isFavoriteScreen = false; // Để phân biệt màn hình
 
     public interface OnDishClickListener {
         void onDishClick(Dish dish);
@@ -30,6 +30,15 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
         this.dishes = dishes;
         this.dishClickListener = dishClickListener;
         this.favoriteClickListener = favoriteClickListener;
+    }
+
+    // Constructor với flag để biết đang ở màn hình nào
+    public DishAdapter(List<Dish> dishes, OnDishClickListener dishClickListener,
+                       OnFavoriteClickListener favoriteClickListener, boolean isFavoriteScreen) {
+        this.dishes = dishes;
+        this.dishClickListener = dishClickListener;
+        this.favoriteClickListener = favoriteClickListener;
+        this.isFavoriteScreen = isFavoriteScreen;
     }
 
     @NonNull
@@ -67,6 +76,15 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
             dishNameTextView.setText(dish.getName());
             dishDescriptionTextView.setText(dish.getDescription());
             difficultyTextView.setText(dish.getDifficultyLevel());
+
+            // Thay đổi icon dựa trên màn hình
+            if (isFavoriteScreen) {
+                favoriteImageView.setImageResource(R.drawable.ic_bookmark_filled);
+                favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.holo_red_light));
+            } else {
+                favoriteImageView.setImageResource(R.drawable.ic_bookmark_border);
+                favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.darker_gray));
+            }
 
             itemView.setOnClickListener(v -> {
                 if (dishClickListener != null) {

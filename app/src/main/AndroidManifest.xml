@@ -54,6 +54,9 @@
         <activity
             android:name=".FavoritesActivity"
             android:exported="false" />
+        <activity
+            android:name=".AllDishesActivity"
+            android:exported="false" />
 
     </application>
 </manifest>
