@@ -66,6 +66,9 @@
         <activity
             android:name=".AllDishesActivity"
             android:exported="false" />
+        <activity
+            android:name=".DishDetailActivity"
+            android:exported="false" />
 
     </application>
 
