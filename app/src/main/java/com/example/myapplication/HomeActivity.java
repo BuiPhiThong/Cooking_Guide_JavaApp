@@ -68,6 +68,42 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     // THAY ĐỔI: Load món được yêu thích nhiều nhất thay vì categories cố định
+//    private void loadMostFavoriteDishes() {
+//        Log.d("HomeActivity", "Loading most favorite dishes...");
+//
+//        DishDAO.getMostFavoriteDishes(6, new DishDAO.DishCallback() {
+//            @Override
+//            public void onSuccess(List<Dish> dishes) {
+//                Log.d("HomeActivity", "Received " + dishes.size() + " favorite dishes");
+//
+//                if (dishes.size() > 0) {
+//                    for (Dish dish : dishes) {
+//                        Log.d("HomeActivity", "Dish: " + dish.getName());
+//                    }
+//
+//                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this::onFavoriteDishClick);
+//                    favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+//                    favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
+//
+//                    Log.d("HomeActivity", "Adapter set successfully");
+//                } else {
+//                    Log.w("HomeActivity", "No favorite dishes found, loading all dishes as fallback");
+//                    loadAllDishesAsFallback();
+//                }
+//            }
+//
+//            @Override
+//            public void onError(String error) {
+//                Log.e("HomeActivity", "Error loading favorite dishes: " + error);
+//                Toast.makeText(HomeActivity.this, "Lỗi tải món yêu thích: " + error, Toast.LENGTH_SHORT).show();
+//                // Fallback: load all dishes
+//                loadAllDishesAsFallback();
+//            }
+//        });
+//    }
+
+
+    // Trong HomeActivity.java
     private void loadMostFavoriteDishes() {
         Log.d("HomeActivity", "Loading most favorite dishes...");
 
@@ -77,14 +113,9 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d("HomeActivity", "Received " + dishes.size() + " favorite dishes");
 
                 if (dishes.size() > 0) {
-                    for (Dish dish : dishes) {
-                        Log.d("HomeActivity", "Dish: " + dish.getName());
-                    }
-
-                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this::onFavoriteDishClick);
+                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this, currentUserId);
                     favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
                     favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
-
                     Log.d("HomeActivity", "Adapter set successfully");
                 } else {
                     Log.w("HomeActivity", "No favorite dishes found, loading all dishes as fallback");
@@ -102,8 +133,9 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    // Thêm method fallback
     private void loadAllDishesAsFallback() {
+        Log.d("HomeActivity", "Loading all dishes as fallback");
+
         DishDAO.getAllDishes(new DishDAO.DishCallback() {
             @Override
             public void onSuccess(List<Dish> dishes) {
@@ -112,7 +144,7 @@ public class HomeActivity extends AppCompatActivity {
                 // Lấy 6 món đầu tiên
                 List<Dish> firstSix = dishes.subList(0, Math.min(6, dishes.size()));
 
-                favoriteDishAdapter = new FavoriteDishAdapter(firstSix, HomeActivity.this::onFavoriteDishClick);
+                favoriteDishAdapter = new FavoriteDishAdapter(firstSix, HomeActivity.this, currentUserId);
                 favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
                 favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
 
@@ -126,6 +158,11 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
     }
+
+
+    // Thêm method fallback
+    // Sửa method loadAllDishesAsFallback trong HomeActivity.java
+
 
     // Thêm method fallback
 

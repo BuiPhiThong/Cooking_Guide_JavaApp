@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -214,8 +215,13 @@ public class AllDishesActivity extends AppCompatActivity {
     }
 
     private void onDishClick(Dish dish) {
-        Toast.makeText(this, "Clicked: " + dish.getName(), Toast.LENGTH_SHORT).show();
+        // Thay vì chỉ hiển thị Toast, mở DishDetailActivity
+        Intent intent = new Intent(this, DishDetailActivity.class);
+        intent.putExtra("DISH_ID", dish.getId());
+        intent.putExtra("USER_ID", currentUserId);
+        startActivity(intent);
     }
+
 
     private void onFavoriteClick(Dish dish) {
         DishDAO.toggleFavorite(currentUserId, dish.getId(), new DishDAO.FavoriteCallback() {

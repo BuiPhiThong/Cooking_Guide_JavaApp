@@ -1,26 +1,30 @@
 package com.example.myapplication.entity;
-
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.myapplication.DishDetailActivity;
 import com.example.myapplication.R;
 import com.example.myapplication.entity.Dish;
 import java.util.List;
 
 public class FavoriteDishAdapter extends RecyclerView.Adapter<FavoriteDishAdapter.FavoriteDishViewHolder> {
     private List<Dish> favoriteDishes;
-    private OnFavoriteDishClickListener listener;
+    private Context context;
+    private int currentUserId;
 
-    public interface OnFavoriteDishClickListener {
-        void onFavoriteDishClick(Dish dish);
-    }
-
-    public FavoriteDishAdapter(List<Dish> favoriteDishes, OnFavoriteDishClickListener listener) {
+    public FavoriteDishAdapter(List<Dish> favoriteDishes, Context context, int currentUserId) {
         this.favoriteDishes = favoriteDishes;
-        this.listener = listener;
+        this.context = context;
+        this.currentUserId = currentUserId;
     }
 
     @NonNull
@@ -51,15 +55,23 @@ public class FavoriteDishAdapter extends RecyclerView.Adapter<FavoriteDishAdapte
             dishDescriptionTextView = itemView.findViewById(R.id.dishDescriptionTextView);
         }
 
+        // Trong FavoriteDishAdapter.java
         public void bind(Dish dish) {
             dishNameTextView.setText(dish.getName());
             dishDescriptionTextView.setText(dish.getDescription());
 
             itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onFavoriteDishClick(dish);
+                try {
+                    Intent intent = new Intent(context, DishDetailActivity.class);
+                    intent.putExtra("DISH_ID", dish.getId());
+                    intent.putExtra("USER_ID", currentUserId);
+                    context.startActivity(intent);
+                } catch (Exception e) {
+                    Log.e("FavoriteDishAdapter", "Error opening DishDetailActivity: " + e.getMessage());
+                    Toast.makeText(context, "Lỗi mở chi tiết món ăn", Toast.LENGTH_SHORT).show();
                 }
             });
         }
+
     }
 }

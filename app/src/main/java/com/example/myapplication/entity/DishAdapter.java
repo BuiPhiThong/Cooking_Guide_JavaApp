@@ -1,5 +1,6 @@
 package com.example.myapplication.adapter;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.myapplication.DishDetailActivity;
 import com.example.myapplication.R;
 import com.example.myapplication.entity.Dish;
 import java.util.List;
@@ -15,7 +17,7 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
     private List<Dish> dishes;
     private OnDishClickListener dishClickListener;
     private OnFavoriteClickListener favoriteClickListener;
-    private boolean isFavoriteScreen = false; // Để phân biệt màn hình
+    private boolean isFavoriteScreen = false;
 
     public interface OnDishClickListener {
         void onDishClick(Dish dish);
@@ -25,6 +27,7 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
         void onFavoriteClick(Dish dish);
     }
 
+    // Constructor cũ (để tương thích)
     public DishAdapter(List<Dish> dishes, OnDishClickListener dishClickListener,
                        OnFavoriteClickListener favoriteClickListener) {
         this.dishes = dishes;
@@ -32,7 +35,7 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
         this.favoriteClickListener = favoriteClickListener;
     }
 
-    // Constructor với flag để biết đang ở màn hình nào
+    // Constructor mới với flag isFavoriteScreen
     public DishAdapter(List<Dish> dishes, OnDishClickListener dishClickListener,
                        OnFavoriteClickListener favoriteClickListener, boolean isFavoriteScreen) {
         this.dishes = dishes;
