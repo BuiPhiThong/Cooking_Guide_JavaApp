@@ -10,12 +10,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class UserDAO {
+    public interface UserCallback {
+        void onSuccess(User user);
+        void onError(String error);
+    }
 
     public interface LoginCallback {
         void onSuccess(User user);
         void onError(String error);
     }
-
+    public interface UpdateCallback {
+        void onSuccess();
+        void onError(String error);
+    }
     public interface RegisterCallback {
         void onSuccess();
         void onError(String error);
@@ -112,4 +119,85 @@ public class UserDAO {
             }
         }.execute();
     }
+
+    public static void getUserById(int userId, UserCallback callback) {
+        new AsyncTask<Void, Void, Object>() {
+            @Override
+            protected Object doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String query = "SELECT * FROM Users WHERE id = ?";
+                        PreparedStatement stmt = connection.prepareStatement(query);
+                        stmt.setInt(1, userId);
+                        ResultSet rs = stmt.executeQuery();
+                        if (rs.next()) {
+                            User user = new User();
+                            user.setId(rs.getInt("id"));
+                            user.setUsername(rs.getString("username"));
+                            user.setEmail(rs.getString("email"));
+                            user.setPassword(rs.getString("password"));
+                            user.setBio(rs.getString("bio"));
+                            user.setFullName(rs.getString("full_name"));
+                            user.setAvatarUrl(rs.getString("avatar_url"));
+                            user.setRole(rs.getString("role"));
+                            user.setCreatedAt(rs.getString("created_at"));
+                            connection.close();
+                            return user;
+                        } else {
+                            connection.close();
+                            return "Không tìm thấy người dùng";
+                        }
+                    } else {
+                        return "Kết nối database thất bại";
+                    }
+                } catch (Exception e) {
+                    return e.getMessage();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Object result) {
+                if (result instanceof User) {
+                    callback.onSuccess((User) result);
+                } else {
+                    callback.onError(result.toString());
+                }
+            }
+        }.execute();
+    }
+
+    public static void updateUser(User user, UpdateCallback callback) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String sql = "UPDATE Users SET email=?, bio=?, full_name=? WHERE id=?";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.setString(1, user.getEmail());
+                        stmt.setString(2, user.getBio());
+                        stmt.setString(3, user.getFullName());
+                        stmt.setInt(4, user.getId());
+                        int affected = stmt.executeUpdate();
+                        connection.close();
+                        return affected > 0;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) callback.onSuccess();
+                else callback.onError("Cập nhật thất bại");
+            }
+        }.execute();
+    }
+
+
+
 }

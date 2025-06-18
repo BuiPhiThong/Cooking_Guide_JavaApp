@@ -69,7 +69,9 @@
         <activity
             android:name=".DishDetailActivity"
             android:exported="false" />
-
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false"/>
     </application>
 
 </manifest>
