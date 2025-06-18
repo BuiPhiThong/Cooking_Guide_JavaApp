@@ -9,7 +9,7 @@ public class DatabaseConnection {
     private static final String TAG = "DatabaseConnection";
 
     // Thay "localhost" bằng IP thực của máy SQL Server
-    private static final String SERVER_IP = "192.168.13.102"; // IP máy chạy SQL Server
+    private static final String SERVER_IP = "10.33.8.133"; // IP máy chạy SQL Server
 //    192.168.13.102
 //    10.33.8.133
     private static final String PORT = "1433";

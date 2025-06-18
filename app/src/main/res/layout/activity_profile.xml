@@ -1,71 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#F8F9FA">
 
-    <ImageView
-        android:id="@+id/profileImageView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center"
-        android:background="@drawable/circle_orange_background"
-        android:src="@drawable/ic_profile_placeholder"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/usernameTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@username"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/emailTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="email@example.com"
-        android:textSize="14sp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/fullNameTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Full Name"
-        android:textSize="16sp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/bioTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Bio"
-        android:textSize="14sp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="32dp" />
-
-    <Button
-        android:id="@+id/editProfileButton"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="Chỉnh sửa thông tin"
-        android:background="@drawable/button_background"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
 
-    <Button
-        android:id="@+id/logoutButton"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="Đăng xuất"
-        android:background="@android:color/transparent"
-        android:textColor="#FF6B35" />
+        <!-- Avatar Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="60dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardPreventCornerOverlap="true"
+            app:cardUseCompatPadding="true">
 
-</LinearLayout>
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_profile_placeholder" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Username -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Username:"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/usernameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@username"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Email -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email:"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/emailTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="email@example.com"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Full Name -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Họ và tên:"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/fullNameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Họ và Tên"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Bio -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bio:"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/bioTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Giới thiệu ngắn gọn về bạn ở đây."
+            android:textSize="15sp"
+            android:textColor="#888888"
+            android:gravity="start"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Edit Profile Button -->
+        <Button
+            android:id="@+id/editProfileButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Chỉnh sửa thông tin"
+            android:backgroundTint="#FF6B35"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="14dp"
+            android:drawableStart="@drawable/ic_edit"
+            android:drawablePadding="8dp"
+            android:background="@drawable/rounded_button_orange" />
+
+        <!-- Logout Button -->
+        <Button
+            android:id="@+id/logoutButton"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Đăng xuất"
+            android:textStyle="bold"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#FF6B35"
+            android:drawableStart="@drawable/ic_logout"
+            android:drawablePadding="8dp"
+            android:background="@drawable/rounded_button_white" />
+
+    </LinearLayout>
+</ScrollView>
