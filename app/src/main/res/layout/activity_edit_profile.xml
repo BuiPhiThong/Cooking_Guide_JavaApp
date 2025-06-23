@@ -27,7 +27,19 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_profile_placeholder" />
+
+            <ImageView
+                android:id="@+id/editAvatarButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="bottom|end"
+                android:src="@drawable/ic_edit_24"
+                android:background="@drawable/bg_circle"
+                android:padding="6dp"
+                android:tint="#FF6B35"
+                android:layout_margin="8dp"/>
         </androidx.cardview.widget.CardView>
+
 
         <!-- Username (không cho sửa) -->
         <TextView
@@ -41,7 +53,7 @@
             android:id="@+id/editUsername"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:enabled="false"
+            android:enabled="true"
             android:background="@drawable/edittext_background"
             android:textColor="#333333"
             android:textSize="16sp"
@@ -79,7 +91,12 @@
             android:background="@drawable/edittext_background"
             android:textColor="#333333"
             android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="8dp"
+            android:enabled="false"
+        android:focusable="false"
+        android:clickable="false"
+        android:cursorVisible="false"/>
+
 
         <!-- Bio -->
         <TextView
