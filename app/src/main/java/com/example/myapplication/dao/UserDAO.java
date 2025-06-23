@@ -174,14 +174,15 @@ public class UserDAO {
                 try {
                     Connection connection = DatabaseConnection.getConnection();
                     if (connection != null) {
-                        // Thêm trường username vào câu lệnh UPDATE
-                        String sql = "UPDATE Users SET username=?, email=?, bio=?, full_name=? WHERE id=?";
+                        // Include avatar_url in the UPDATE statement
+                        String sql = "UPDATE Users SET username=?, email=?, bio=?, full_name=?, avatar_url=? WHERE id=?";
                         PreparedStatement stmt = connection.prepareStatement(sql);
                         stmt.setString(1, user.getUsername());
                         stmt.setString(2, user.getEmail());
                         stmt.setString(3, user.getBio());
                         stmt.setString(4, user.getFullName());
-                        stmt.setInt(5, user.getId());
+                        stmt.setString(5, user.getAvatarUrl()); // Add avatar URL
+                        stmt.setInt(6, user.getId()); // Note: index changed to 6
 
                         int affected = stmt.executeUpdate();
                         connection.close();
@@ -193,6 +194,7 @@ public class UserDAO {
                     return false;
                 }
             }
+
             @Override
             protected void onPostExecute(Boolean success) {
                 if (success) callback.onSuccess();

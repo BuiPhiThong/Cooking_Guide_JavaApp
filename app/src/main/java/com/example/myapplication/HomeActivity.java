@@ -1,6 +1,8 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
@@ -12,8 +14,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.FavoriteDishAdapter;
 import com.example.myapplication.entity.RecentDish;
+import com.example.myapplication.entity.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.example.myapplication.entity.CategoryAdapter;
 import com.example.myapplication.entity.RecentDishAdapter;
@@ -63,8 +67,40 @@ public class HomeActivity extends AppCompatActivity {
 
         userNameTextView.setText("Tìm kiếm");
 
+        // Load avatar từ database
+        loadUserAvatarFromDatabase();
+
         profileImageView.setOnClickListener(v -> openProfile());
         notificationImageView.setOnClickListener(v -> openNotifications());
+    }
+
+    private void loadUserAvatar(String avatarUrl, ImageView imageView) {
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            try {
+                if (avatarUrl.startsWith("/")) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(avatarUrl);
+                    if (bitmap != null) {
+                        imageView.setImageBitmap(bitmap);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loadUserAvatarFromDatabase() {
+        UserDAO.getUserById(currentUserId, new UserDAO.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                loadUserAvatar(user.getAvatarUrl(), profileImageView);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("HomeActivity", "Error loading user avatar: " + error);
+            }
+        });
     }
 
     // THAY ĐỔI: Load món được yêu thích nhiều nhất thay vì categories cố định
@@ -236,7 +272,11 @@ public class HomeActivity extends AppCompatActivity {
         intent.putExtra("USER_ID", currentUserId);
         startActivity(intent);
     }
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserAvatarFromDatabase(); // Refresh avatar mỗi khi quay lại HomeActivity
+    }
     private String calculateTimeAgo(String createdAt) {
         return "Cách đây 5 ngày";
     }

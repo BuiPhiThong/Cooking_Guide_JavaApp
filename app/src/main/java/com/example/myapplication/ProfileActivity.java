@@ -1,6 +1,8 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -26,6 +28,7 @@ public class ProfileActivity extends AppCompatActivity {
         initViews();
         setupUserInfo();
         setupClickListeners();
+        loadUserFromDatabase(); // THÊM DÒNG NÀY để load avatar ngay khi mở
     }
 
     private void initViews() {
@@ -39,7 +42,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupUserInfo() {
-        currentUserId = getIntent().getIntExtra("USER_ID", 0); // THÊM DÒNG NÀY
+        currentUserId = getIntent().getIntExtra("USER_ID", 0);
 
         String username = getIntent().getStringExtra("USERNAME");
         String email = getIntent().getStringExtra("EMAIL");
@@ -52,6 +55,41 @@ public class ProfileActivity extends AppCompatActivity {
         bioTextView.setText(bio != null ? bio : "Chưa có mô tả");
     }
 
+    // THÊM METHOD NÀY để load user từ database ngay khi mở activity
+    private void loadUserFromDatabase() {
+        UserDAO.getUserById(currentUserId, new UserDAO.UserCallback() {
+            @Override
+            public void onSuccess(User user) {
+                // Cập nhật tất cả thông tin từ database
+                usernameTextView.setText("@" + user.getUsername());
+                emailTextView.setText(user.getEmail());
+                fullNameTextView.setText(user.getFullName() != null ? user.getFullName() : "Chưa cập nhật");
+                bioTextView.setText(user.getBio() != null ? user.getBio() : "Chưa có mô tả");
+                loadUserAvatar(user.getAvatarUrl());
+            }
+
+            @Override
+            public void onError(String error) {
+                Toast.makeText(ProfileActivity.this, "Lỗi tải thông tin: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // THÊM METHOD NÀY để load avatar
+    private void loadUserAvatar(String avatarUrl) {
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            try {
+                if (avatarUrl.startsWith("/")) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(avatarUrl);
+                    if (bitmap != null) {
+                        profileImageView.setImageBitmap(bitmap);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private void setupClickListeners() {
         editProfileButton.setOnClickListener(v -> {
@@ -59,7 +97,6 @@ public class ProfileActivity extends AppCompatActivity {
             intent.putExtra("USER_ID", currentUserId);
             startActivityForResult(intent, 100);
         });
-
 
         logoutButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, LoginActivity.class);
@@ -69,18 +106,15 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && resultCode == RESULT_OK) {
-            // Reload lại thông tin user từ database
             reloadUserInfo();
         }
     }
 
     private void reloadUserInfo() {
-        // Gọi UserDAO.getUserById(currentUserId, ...) để lấy lại thông tin mới nhất
         UserDAO.getUserById(currentUserId, new UserDAO.UserCallback() {
             @Override
             public void onSuccess(User user) {
@@ -88,7 +122,7 @@ public class ProfileActivity extends AppCompatActivity {
                 emailTextView.setText(user.getEmail());
                 fullNameTextView.setText(user.getFullName());
                 bioTextView.setText(user.getBio());
-                // Nếu có avatar thì load lại avatar
+                loadUserAvatar(user.getAvatarUrl()); // THÊM DÒNG NÀY
             }
             @Override
             public void onError(String error) {
@@ -96,5 +130,4 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
     }
-
 }

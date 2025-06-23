@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -41,12 +42,13 @@ public class EditProfileActivity extends AppCompatActivity {
             @Override
             public void onSuccess(User user) {
                 currentUser = user;
-                editUsername.setText(user.getUsername()); // Thêm dòng này
+                editUsername.setText(user.getUsername());
                 editFullName.setText(user.getFullName());
                 editEmail.setText(user.getEmail());
                 editBio.setText(user.getBio());
-                // Nếu có avatar thì load vào editProfileImageView (dùng Glide/Picasso)
+                loadUserAvatar(user.getAvatarUrl()); // Add this line
             }
+
             @Override
             public void onError(String error) {
                 Toast.makeText(EditProfileActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
@@ -72,6 +74,7 @@ public class EditProfileActivity extends AppCompatActivity {
             return;
         }
 
+        // Create updated user object
         User updatedUser = new User();
         updatedUser.setId(currentUser.getId());
         updatedUser.setUsername(username);
@@ -82,26 +85,56 @@ public class EditProfileActivity extends AppCompatActivity {
         updatedUser.setRole(currentUser.getRole());
         updatedUser.setCreatedAt(currentUser.getCreatedAt());
 
-        // Xử lý avatar:
+        // Handle avatar update
         if (avatarPath != null && !avatarPath.isEmpty()) {
-            updatedUser.setAvatarUrl(avatarPath); // Đường dẫn ảnh mới vừa chọn và lưu
+            updatedUser.setAvatarUrl(avatarPath);
         } else {
-            updatedUser.setAvatarUrl(currentUser.getAvatarUrl()); // Giữ ảnh cũ nếu chưa đổi
+            updatedUser.setAvatarUrl(currentUser.getAvatarUrl());
         }
+
+        // Show loading state
+        saveProfileButton.setEnabled(false);
+        saveProfileButton.setText("Đang lưu...");
 
         UserDAO.updateUser(updatedUser, new UserDAO.UpdateCallback() {
             @Override
             public void onSuccess() {
-                Toast.makeText(EditProfileActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
-                setResult(RESULT_OK);
-                finish();
+                runOnUiThread(() -> {
+                    Toast.makeText(EditProfileActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_OK);
+                    finish();
+                });
             }
+
             @Override
             public void onError(String error) {
-                Toast.makeText(EditProfileActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    Toast.makeText(EditProfileActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+                    saveProfileButton.setEnabled(true);
+                    saveProfileButton.setText("Lưu thay đổi");
+                });
             }
         });
     }
+
+    private void loadUserAvatar(String avatarUrl) {
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            try {
+                // If it's a local file path
+                if (avatarUrl.startsWith("/")) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(avatarUrl);
+                    if (bitmap != null) {
+                        editProfileImageView.setImageBitmap(bitmap);
+                    }
+                }
+                // If you're using network URLs, use Glide or Picasso here
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
