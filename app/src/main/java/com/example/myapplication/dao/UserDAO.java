@@ -174,12 +174,15 @@ public class UserDAO {
                 try {
                     Connection connection = DatabaseConnection.getConnection();
                     if (connection != null) {
-                        String sql = "UPDATE Users SET email=?, bio=?, full_name=? WHERE id=?";
+                        // Thêm trường username vào câu lệnh UPDATE
+                        String sql = "UPDATE Users SET username=?, email=?, bio=?, full_name=? WHERE id=?";
                         PreparedStatement stmt = connection.prepareStatement(sql);
-                        stmt.setString(1, user.getEmail());
-                        stmt.setString(2, user.getBio());
-                        stmt.setString(3, user.getFullName());
-                        stmt.setInt(4, user.getId());
+                        stmt.setString(1, user.getUsername());
+                        stmt.setString(2, user.getEmail());
+                        stmt.setString(3, user.getBio());
+                        stmt.setString(4, user.getFullName());
+                        stmt.setInt(5, user.getId());
+
                         int affected = stmt.executeUpdate();
                         connection.close();
                         return affected > 0;
