@@ -399,4 +399,125 @@ public class DishDAO {
         }.execute();
     }
 
+    // Thêm vào DishDAO.java
+    public static void addDish(Dish dish, AddDishCallback callback) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String sql = "INSERT INTO Dishes (name, description, user_id, image_url, cooking_steps, ingredient, difficulty_level) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.setString(1, dish.getName());
+                        stmt.setString(2, dish.getDescription());
+                        stmt.setInt(3, dish.getUserId());
+                        stmt.setString(4, dish.getImageUrl());
+                        stmt.setString(5, dish.getCookingSteps());
+                        stmt.setString(6, dish.getIngredient());
+                        stmt.setString(7, dish.getDifficultyLevel());
+
+                        int affected = stmt.executeUpdate();
+                        connection.close();
+                        return affected > 0;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) callback.onSuccess();
+                else callback.onError("Thêm món ăn thất bại");
+            }
+        }.execute();
+    }
+    // Thêm method này vào class DishDAO
+    public static void updateDish(Dish dish, AddDishCallback callback) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String sql = "UPDATE Dishes SET name=?, description=?, image_url=?, cooking_steps=?, ingredient=?, difficulty_level=? WHERE id=?";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.setString(1, dish.getName());
+                        stmt.setString(2, dish.getDescription());
+                        stmt.setString(3, dish.getImageUrl());
+                        stmt.setString(4, dish.getCookingSteps());
+                        stmt.setString(5, dish.getIngredient());
+                        stmt.setString(6, dish.getDifficultyLevel());
+                        stmt.setInt(7, dish.getId());
+
+                        int affected = stmt.executeUpdate();
+                        connection.close();
+                        return affected > 0;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) callback.onSuccess();
+                else callback.onError("Cập nhật món ăn thất bại");
+            }
+        }.execute();
+    }
+
+    public interface DishesCallback {
+        void onSuccess(List<Dish> dishes);
+        void onError(String error);
+    }
+
+    public interface DeleteCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+
+    public interface AddDishCallback {
+        void onSuccess();
+        void onError(String error);
+    }
+
+    // Thêm method này vào class DishDAO
+    public static void deleteDish(int dishId, DeleteCallback callback) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String sql = "DELETE FROM Dishes WHERE id = ?";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.setInt(1, dishId);
+                        int affected = stmt.executeUpdate();
+                        connection.close();
+                        return affected > 0;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    callback.onSuccess();
+                } else {
+                    callback.onError("Xóa món ăn thất bại");
+                }
+            }
+        }.execute();
+    }
+
 }
