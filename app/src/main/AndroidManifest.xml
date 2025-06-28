@@ -72,6 +72,16 @@
         <activity
             android:name=".EditProfileActivity"
             android:exported="false"/>
+
+        <activity android:name=".AdminDashboardActivity" android:exported="false" />
+        <activity android:name=".ManageUsersActivity" android:exported="false" />
+        <activity android:name=".AddDishActivity" android:exported="false" />
+        <activity android:name=".ManageDishesActivity" android:exported="false" />
+        <activity
+            android:name=".EditUserActivity"
+            android:exported="false" />
+        <activity android:name=".EditDishActivity" android:exported="false" />
+
     </application>
 
 </manifest>

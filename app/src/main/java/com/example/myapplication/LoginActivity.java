@@ -64,16 +64,27 @@ public class LoginActivity extends AppCompatActivity {
                 signInButton.setEnabled(true);
                 signInButton.setText("Sign In");
 
-                // Chuyển sang màn hình thành công với thông tin user
-                Intent intent = new Intent(LoginActivity.this, LoginSuccessActivity.class);
-                intent.putExtra("USER_ID", user.getId());
-                intent.putExtra("USERNAME", user.getUsername());
-                intent.putExtra("EMAIL", user.getEmail());
-                intent.putExtra("FULL_NAME", user.getFullName());
-                intent.putExtra("ROLE", user.getRole());
-                intent.putExtra("BIO", user.getBio());
-                startActivity(intent);
-                finish();
+                // THAY THẾ ĐOẠN NÀY ▼▼▼
+                // Kiểm tra role để chuyển màn hình phù hợp
+                if ("admin".equals(user.getRole())) {
+                    // Chuyển đến Admin Dashboard
+                    Intent intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
+                    intent.putExtra("USER_ID", user.getId());
+                    intent.putExtra("USERNAME", user.getUsername());
+                    intent.putExtra("EMAIL", user.getEmail());
+                    startActivity(intent);
+                    finish();
+                } else {
+                    // Chuyển đến Home bình thường cho user
+                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                    intent.putExtra("USER_ID", user.getId());
+                    intent.putExtra("USERNAME", user.getUsername());
+                    intent.putExtra("EMAIL", user.getEmail());
+                    intent.putExtra("FULL_NAME", user.getFullName());
+                    intent.putExtra("BIO", user.getBio());
+                    startActivity(intent);
+                    finish();
+                }
             }
 
             @Override

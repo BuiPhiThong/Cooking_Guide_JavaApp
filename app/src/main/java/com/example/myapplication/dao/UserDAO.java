@@ -8,6 +8,8 @@ import com.example.myapplication.entity.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
     public interface UserCallback {
@@ -203,6 +205,88 @@ public class UserDAO {
         }.execute();
     }
 
+    // Thêm vào UserDAO.java
+    public static void getAllUsers(UsersCallback callback) {
+        new AsyncTask<Void, Void, Object>() {
+            @Override
+            protected Object doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String query = "SELECT * FROM Users ORDER BY created_at DESC";
+                        PreparedStatement statement = connection.prepareStatement(query);
+                        ResultSet resultSet = statement.executeQuery();
+
+                        List<User> users = new ArrayList<>();
+                        while (resultSet.next()) {
+                            User user = new User();
+                            user.setId(resultSet.getInt("id"));
+                            user.setUsername(resultSet.getString("username"));
+                            user.setEmail(resultSet.getString("email"));
+                            user.setFullName(resultSet.getString("full_name"));
+                            user.setBio(resultSet.getString("bio"));
+                            user.setRole(resultSet.getString("role"));
+                            user.setCreatedAt(resultSet.getString("created_at"));
+                            users.add(user);
+                        }
+                        connection.close();
+                        return users;
+                    }
+                    return "Connection failed";
+                } catch (Exception e) {
+                    return e.getMessage();
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Object result) {
+                if (result instanceof List) {
+                    callback.onSuccess((List<User>) result);
+                } else {
+                    callback.onError(result.toString());
+                }
+            }
+        }.execute();
+    }
+
+    public static void deleteUser(int userId, DeleteCallback callback) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    Connection connection = DatabaseConnection.getConnection();
+                    if (connection != null) {
+                        String sql = "DELETE FROM Users WHERE id = ?";
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                        stmt.setInt(1, userId);
+                        int affected = stmt.executeUpdate();
+                        connection.close();
+                        return affected > 0;
+                    }
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) callback.onSuccess();
+                else callback.onError("Xóa thất bại");
+            }
+        }.execute();
+    }
+
+    public interface UsersCallback {
+        void onSuccess(List<User> users);
+        void onError(String error);
+    }
+
+    public interface DeleteCallback {
+        void onSuccess();
+        void onError(String error);
+    }
 
 
 }
