@@ -148,6 +148,7 @@ public class HomeActivity extends AppCompatActivity {
 
 
     // Trong HomeActivity.java
+// Cập nhật method loadMostFavoriteDishes
     private void loadMostFavoriteDishes() {
         Log.d("HomeActivity", "Loading most favorite dishes...");
 
@@ -157,7 +158,8 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d("HomeActivity", "Received " + dishes.size() + " favorite dishes");
 
                 if (dishes.size() > 0) {
-                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this, currentUserId);
+                    // SỬA: Thêm click listener
+                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this, currentUserId, HomeActivity.this::onFavoriteDishClick);
                     favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
                     favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
                     Log.d("HomeActivity", "Adapter set successfully");
@@ -171,11 +173,44 @@ public class HomeActivity extends AppCompatActivity {
             public void onError(String error) {
                 Log.e("HomeActivity", "Error loading favorite dishes: " + error);
                 Toast.makeText(HomeActivity.this, "Lỗi tải món yêu thích: " + error, Toast.LENGTH_SHORT).show();
-                // Fallback: load all dishes
                 loadAllDishesAsFallback();
             }
         });
     }
+
+    // Cập nhật method onFavoriteDishClick
+    private void onFavoriteDishClick(Dish dish) {
+        Intent intent = new Intent(this, DishDetailActivity.class);
+        intent.putExtra("DISH_ID", dish.getId());
+        intent.putExtra("USER_ID", currentUserId);
+        startActivity(intent);
+    }
+
+//    private void loadAllDishesAsFallback() {
+//        Log.d("HomeActivity", "Loading all dishes as fallback");
+//
+//        DishDAO.getAllDishes(new DishDAO.DishCallback() {
+//            @Override
+//            public void onSuccess(List<Dish> dishes) {
+//                Log.d("HomeActivity", "Fallback: Loaded " + dishes.size() + " dishes");
+//
+//                // Lấy 6 món đầu tiên
+//                List<Dish> firstSix = dishes.subList(0, Math.min(6, dishes.size()));
+//
+//                favoriteDishAdapter = new FavoriteDishAdapter(firstSix, HomeActivity.this, currentUserId);
+//                favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
+//                favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
+//
+//                Toast.makeText(HomeActivity.this, "Hiển thị " + firstSix.size() + " món ăn", Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onError(String error) {
+//                Log.e("HomeActivity", "Fallback also failed: " + error);
+//                Toast.makeText(HomeActivity.this, "Không thể tải dữ liệu", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
 
     private void loadAllDishesAsFallback() {
         Log.d("HomeActivity", "Loading all dishes as fallback");
@@ -185,10 +220,10 @@ public class HomeActivity extends AppCompatActivity {
             public void onSuccess(List<Dish> dishes) {
                 Log.d("HomeActivity", "Fallback: Loaded " + dishes.size() + " dishes");
 
-                // Lấy 6 món đầu tiên
                 List<Dish> firstSix = dishes.subList(0, Math.min(6, dishes.size()));
 
-                favoriteDishAdapter = new FavoriteDishAdapter(firstSix, HomeActivity.this, currentUserId);
+                // SỬA: Thêm click listener
+                favoriteDishAdapter = new FavoriteDishAdapter(firstSix, HomeActivity.this, currentUserId, HomeActivity.this::onFavoriteDishClick);
                 favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
                 favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
 
@@ -202,7 +237,6 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
     }
-
 
     // Thêm method fallback
     // Sửa method loadAllDishesAsFallback trong HomeActivity.java
@@ -263,10 +297,10 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void onFavoriteDishClick(Dish dish) {
-        Toast.makeText(this, "Món được yêu thích: " + dish.getName(), Toast.LENGTH_SHORT).show();
-        // TODO: Chuyển sang màn hình chi tiết món ăn
-    }
+//    private void onFavoriteDishClick(Dish dish) {
+//        Toast.makeText(this, "Món được yêu thích: " + dish.getName(), Toast.LENGTH_SHORT).show();
+//        // TODO: Chuyển sang màn hình chi tiết món ăn
+//    }
 
     private void onRecentDishClick(RecentDish recentDish) {
         // Sử dụng dishId từ RecentDish để chuyển sang DishDetailActivity
