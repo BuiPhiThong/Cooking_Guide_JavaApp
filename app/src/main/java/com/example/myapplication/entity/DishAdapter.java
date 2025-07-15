@@ -1,6 +1,5 @@
 package com.example.myapplication.adapter;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +7,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.myapplication.DishDetailActivity;
 import com.example.myapplication.R;
 import com.example.myapplication.entity.Dish;
 import java.util.List;
@@ -17,7 +15,7 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
     private List<Dish> dishes;
     private OnDishClickListener dishClickListener;
     private OnFavoriteClickListener favoriteClickListener;
-    private boolean isFavoriteScreen = false;
+    private FavoriteChecker favoriteChecker;
 
     public interface OnDishClickListener {
         void onDishClick(Dish dish);
@@ -27,21 +25,17 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
         void onFavoriteClick(Dish dish);
     }
 
-    // Constructor cũ (để tương thích)
-    public DishAdapter(List<Dish> dishes, OnDishClickListener dishClickListener,
-                       OnFavoriteClickListener favoriteClickListener) {
-        this.dishes = dishes;
-        this.dishClickListener = dishClickListener;
-        this.favoriteClickListener = favoriteClickListener;
+    public interface FavoriteChecker {
+        boolean isDishFavorite(int dishId);
     }
 
-    // Constructor mới với flag isFavoriteScreen
+    // Constructor với FavoriteChecker
     public DishAdapter(List<Dish> dishes, OnDishClickListener dishClickListener,
-                       OnFavoriteClickListener favoriteClickListener, boolean isFavoriteScreen) {
+                       OnFavoriteClickListener favoriteClickListener, FavoriteChecker favoriteChecker) {
         this.dishes = dishes;
         this.dishClickListener = dishClickListener;
         this.favoriteClickListener = favoriteClickListener;
-        this.isFavoriteScreen = isFavoriteScreen;
+        this.favoriteChecker = favoriteChecker;
     }
 
     @NonNull
@@ -80,14 +74,9 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
             dishDescriptionTextView.setText(dish.getDescription());
             difficultyTextView.setText(dish.getDifficultyLevel());
 
-            // Thay đổi icon dựa trên màn hình
-            if (isFavoriteScreen) {
-                favoriteImageView.setImageResource(R.drawable.ic_bookmark_filled);
-                favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.holo_red_light));
-            } else {
-                favoriteImageView.setImageResource(R.drawable.ic_bookmark_border);
-                favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.darker_gray));
-            }
+            // Kiểm tra trạng thái favorite
+            boolean isFavorite = favoriteChecker != null && favoriteChecker.isDishFavorite(dish.getId());
+            updateFavoriteButton(isFavorite);
 
             itemView.setOnClickListener(v -> {
                 if (dishClickListener != null) {
@@ -100,6 +89,16 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
                     favoriteClickListener.onFavoriteClick(dish);
                 }
             });
+        }
+
+        private void updateFavoriteButton(boolean isFavorite) {
+            if (isFavorite) {
+                favoriteImageView.setImageResource(R.drawable.ic_bookmark_filled);
+                favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.holo_red_light));
+            } else {
+                favoriteImageView.setImageResource(R.drawable.ic_bookmark_border);
+                favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.darker_gray));
+            }
         }
     }
 }
