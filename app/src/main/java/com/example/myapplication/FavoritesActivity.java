@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -12,7 +13,7 @@ import com.example.myapplication.entity.Dish;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FavoritesActivity extends AppCompatActivity {
+public class FavoritesActivity extends AppCompatActivity implements DishAdapter.FavoriteChecker {
     private RecyclerView favoritesRecyclerView;
     private DishAdapter dishAdapter;
     private List<Dish> favoritesList;
@@ -36,12 +37,19 @@ public class FavoritesActivity extends AppCompatActivity {
         currentUserId = getIntent().getIntExtra("USER_ID", 0);
 
         favoritesList = new ArrayList<>();
-        // Truyền true để báo đây là màn hình favorites
-        dishAdapter = new DishAdapter(favoritesList, this::onDishClick, this::onFavoriteClick, true);
+
+        // SỬA: Truyền this thay vì true
+        dishAdapter = new DishAdapter(favoritesList, this::onDishClick, this::onFavoriteClick, this);
+
         favoritesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         favoritesRecyclerView.setAdapter(dishAdapter);
     }
 
+    // THÊM: Implement interface FavoriteChecker
+    @Override
+    public boolean isDishFavorite(int dishId) {
+        return true; // Tất cả món ăn trong FavoritesActivity đều là favorite
+    }
 
     private void loadFavorites() {
         DishDAO.getFavoriteDishes(currentUserId, new DishDAO.DishCallback() {
@@ -50,11 +58,6 @@ public class FavoritesActivity extends AppCompatActivity {
                 favoritesList.clear();
                 favoritesList.addAll(dishes);
                 dishAdapter.notifyDataSetChanged();
-
-                // Hiển thị thông báo nếu không có món yêu thích
-                if (dishes.isEmpty()) {
-                    Toast.makeText(FavoritesActivity.this, "Bạn chưa có món ăn yêu thích nào", Toast.LENGTH_SHORT).show();
-                }
             }
 
             @Override
@@ -65,41 +68,19 @@ public class FavoritesActivity extends AppCompatActivity {
     }
 
     private void onDishClick(Dish dish) {
-        Toast.makeText(this, "Clicked: " + dish.getName(), Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, DishDetailActivity.class);
+        intent.putExtra("DISH_ID", dish.getId());
+        intent.putExtra("USER_ID", currentUserId);
+        startActivity(intent);
     }
 
     private void onFavoriteClick(Dish dish) {
-        // Hiển thị dialog xác nhận bỏ yêu thích
-        showUnfavoriteDialog(dish);
-    }
-
-    private void showUnfavoriteDialog(Dish dish) {
-        new AlertDialog.Builder(this)
-                .setTitle("Bỏ yêu thích")
-                .setMessage("Bạn có chắc muốn bỏ yêu thích món \"" + dish.getName() + "\" không?")
-                .setPositiveButton("Có", (dialog, which) -> {
-                    removeFavorite(dish);
-                })
-                .setNegativeButton("Không", (dialog, which) -> {
-                    dialog.dismiss();
-                })
-                .show();
-    }
-
-    private void removeFavorite(Dish dish) {
         DishDAO.toggleFavorite(currentUserId, dish.getId(), new DishDAO.FavoriteCallback() {
             @Override
             public void onSuccess(String message) {
                 Toast.makeText(FavoritesActivity.this, message, Toast.LENGTH_SHORT).show();
-
-                // Xóa món ăn khỏi danh sách hiển thị
-                favoritesList.remove(dish);
-                dishAdapter.notifyDataSetChanged();
-
-                // Hiển thị thông báo nếu danh sách trống
-                if (favoritesList.isEmpty()) {
-                    Toast.makeText(FavoritesActivity.this, "Danh sách yêu thích trống", Toast.LENGTH_SHORT).show();
-                }
+                // Reload danh sách favorites
+                loadFavorites();
             }
 
             @Override

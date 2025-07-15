@@ -34,19 +34,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="#333333" />
 
-        <!-- Favorite Button -->
-        <ImageView
-            android:id="@+id/favoriteButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_margin="16dp"
-            android:background="@drawable/circle_white_background"
-            android:padding="10dp"
-            android:src="@drawable/ic_bookmark_border"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#FF6B35" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Scrollable Content -->
@@ -70,16 +57,41 @@
                 android:orientation="vertical"
                 android:layout_marginBottom="24dp">
 
-                <!-- Dish Name -->
-                <TextView
-                    android:id="@+id/dishNameTextView"
+                <!-- Tên món ăn + nút lưu -->
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Tên món ăn"
-                    android:textColor="#333333"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Dish Name -->
+                    <TextView
+                        android:id="@+id/dishNameTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Tên món ăn"
+                        android:textColor="#333333"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/favoriteButton"
+                        android:layout_marginEnd="8dp" />
+
+                    <!-- Favorite Button (moved) -->
+                    <ImageView
+                        android:id="@+id/favoriteButton"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/circle_white_background"
+                        android:padding="6dp"
+                        android:src="@drawable/ic_bookmark_border"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/dishNameTextView"
+                        app:layout_constraintBottom_toBottomOf="@id/dishNameTextView"
+                        app:tint="#FF6B35" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <!-- Difficulty Badge -->
                 <TextView

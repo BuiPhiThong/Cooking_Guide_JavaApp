@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class DishDetailActivity extends AppCompatActivity {
     private ImageView backButton, favoriteButton, dishImageView;
@@ -98,6 +100,9 @@ public class DishDetailActivity extends AppCompatActivity {
         dishDescriptionTextView.setText(dish.getDescription());
         difficultyTextView.setText(getDifficultyText(dish.getDifficultyLevel()));
 
+        // THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ẢNH MÓN ĂN
+        loadDishImage(dish.getImageUrl());
+
         // Format nguyên liệu
         String ingredients = formatIngredients(dish.getIngredient());
         ingredientsTextView.setText(ingredients);
@@ -109,6 +114,36 @@ public class DishDetailActivity extends AppCompatActivity {
 
         Log.d("DishDetail", "Parsed " + steps.size() + " cooking steps");
     }
+    private void loadDishImage(String imageUrl) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            try {
+                // Log để debug
+                Log.d("DishDetail", "Loading image from: " + imageUrl);
+
+                // Decode ảnh từ đường dẫn local
+                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imageUrl);
+
+                if (bitmap != null) {
+                    // Hiển thị ảnh thành công
+                    dishImageView.setImageBitmap(bitmap);
+                    Log.d("DishDetail", "Image loaded successfully");
+                } else {
+                    // Không decode được ảnh, hiển thị ảnh mặc định
+                    Log.w("DishDetail", "Cannot decode image from path: " + imageUrl);
+                    dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+                }
+            } catch (Exception e) {
+                // Có lỗi khi load ảnh, hiển thị ảnh mặc định
+                Log.e("DishDetail", "Error loading image: " + e.getMessage());
+                dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+            }
+        } else {
+            // Không có URL ảnh, hiển thị ảnh mặc định
+            Log.d("DishDetail", "No image URL provided, using placeholder");
+            dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+        }
+    }
+
 
     private String getDifficultyText(String difficulty) {
         if (difficulty == null) return "Chưa xác định";

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,9 +20,11 @@ import com.example.myapplication.adapter.DishAdapter;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class AllDishesActivity extends AppCompatActivity {
+public class AllDishesActivity extends AppCompatActivity implements DishAdapter.FavoriteChecker {
     private EditText searchEditText;
     private ChipGroup difficultyChipGroup;
     private RecyclerView dishRecyclerView;
@@ -32,6 +35,9 @@ public class AllDishesActivity extends AppCompatActivity {
     private List<Dish> allDishes = new ArrayList<>();
     private List<Dish> filteredDishes = new ArrayList<>();
     private int currentUserId;
+
+    // THÊM FAVORITE CACHE
+    private Map<Integer, Boolean> favoriteCache = new HashMap<>();
 
     // Pagination
     private int currentPage = 1;
@@ -60,16 +66,16 @@ public class AllDishesActivity extends AppCompatActivity {
         loadingProgressBar = findViewById(R.id.loadingProgressBar);
         emptyTextView = findViewById(R.id.emptyTextView);
 
-        // Thêm back button
         ImageView backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(v -> finish());
 
         currentUserId = getIntent().getIntExtra("USER_ID", 0);
+        Log.d("AllDishes", "User ID: " + currentUserId);
     }
 
-
     private void setupRecyclerView() {
-        dishAdapter = new DishAdapter(filteredDishes, this::onDishClick, this::onFavoriteClick);
+        // TRUYỀN this làm FavoriteChecker
+        dishAdapter = new DishAdapter(filteredDishes, this::onDishClick, this::onFavoriteClick, this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         dishRecyclerView.setLayoutManager(layoutManager);
         dishRecyclerView.setAdapter(dishAdapter);
@@ -129,18 +135,70 @@ public class AllDishesActivity extends AppCompatActivity {
         DishDAO.getAllDishes(new DishDAO.DishCallback() {
             @Override
             public void onSuccess(List<Dish> dishes) {
-                showLoading(false);
+                Log.d("AllDishes", "Loaded " + dishes.size() + " dishes");
                 allDishes.clear();
                 allDishes.addAll(dishes);
-                applyFilters();
+
+                // LOAD FAVORITE STATUS SAU KHI CÓ DANH SÁCH
+                loadFavoriteStatus();
             }
 
             @Override
             public void onError(String error) {
+                Log.e("AllDishes", "Error loading dishes: " + error);
                 showLoading(false);
                 Toast.makeText(AllDishesActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // THÊM METHOD LOAD FAVORITE STATUS
+    private void loadFavoriteStatus() {
+        if (allDishes.isEmpty()) {
+            showLoading(false);
+            applyFilters();
+            return;
+        }
+
+        // Khởi tạo tất cả dishes là chưa favorite
+        favoriteCache.clear();
+        for (Dish dish : allDishes) {
+            favoriteCache.put(dish.getId(), false);
+        }
+
+        // Đếm số món ăn đã kiểm tra
+        final int[] checkedCount = {0};
+        final int totalCount = allDishes.size();
+
+        for (Dish dish : allDishes) {
+            DishDAO.checkIfFavorite(currentUserId, dish.getId(), new DishDAO.FavoriteCheckCallback() {
+                @Override
+                public void onResult(boolean isFavorite) {
+                    favoriteCache.put(dish.getId(), isFavorite);
+                    checkedCount[0]++;
+
+                    Log.d("AllDishes", "Dish " + dish.getId() + " favorite: " + isFavorite +
+                            " (" + checkedCount[0] + "/" + totalCount + ")");
+
+                    // Khi đã kiểm tra xong tất cả
+                    if (checkedCount[0] == totalCount) {
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            applyFilters();
+                            Log.d("AllDishes", "All favorite status loaded");
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    // IMPLEMENT INTERFACE FavoriteChecker
+    @Override
+    public boolean isDishFavorite(int dishId) {
+        boolean isFavorite = favoriteCache.getOrDefault(dishId, false);
+        Log.d("AllDishes", "Checking favorite for dish " + dishId + ": " + isFavorite);
+        return isFavorite;
     }
 
     private void loadMoreDishes() {
@@ -149,9 +207,7 @@ public class AllDishesActivity extends AppCompatActivity {
         isLoading = true;
         currentPage++;
 
-        // Simulate loading more data (in real app, call API with page parameter)
         new android.os.Handler().postDelayed(() -> {
-            // Add more filtered items to display
             int startIndex = (currentPage - 1) * itemsPerPage;
             int endIndex = Math.min(startIndex + itemsPerPage, getFilteredResults().size());
 
@@ -168,11 +224,9 @@ public class AllDishesActivity extends AppCompatActivity {
     private void applyFilters() {
         List<Dish> results = getFilteredResults();
 
-        // Reset pagination
         currentPage = 1;
         filteredDishes.clear();
 
-        // Add first page of results
         int endIndex = Math.min(itemsPerPage, results.size());
         if (endIndex > 0) {
             filteredDishes.addAll(results.subList(0, endIndex));
@@ -180,7 +234,6 @@ public class AllDishesActivity extends AppCompatActivity {
 
         dishAdapter.notifyDataSetChanged();
 
-        // Show/hide empty state
         if (filteredDishes.isEmpty()) {
             emptyTextView.setVisibility(View.VISIBLE);
             dishRecyclerView.setVisibility(View.GONE);
@@ -215,25 +268,45 @@ public class AllDishesActivity extends AppCompatActivity {
     }
 
     private void onDishClick(Dish dish) {
-        // Thay vì chỉ hiển thị Toast, mở DishDetailActivity
         Intent intent = new Intent(this, DishDetailActivity.class);
         intent.putExtra("DISH_ID", dish.getId());
         intent.putExtra("USER_ID", currentUserId);
         startActivity(intent);
     }
 
-
     private void onFavoriteClick(Dish dish) {
+        // Cập nhật cache ngay lập tức
+        boolean currentStatus = favoriteCache.getOrDefault(dish.getId(), false);
+        favoriteCache.put(dish.getId(), !currentStatus);
+        dishAdapter.notifyDataSetChanged();
+
+        Log.d("AllDishes", "Toggling favorite for dish " + dish.getId() +
+                " from " + currentStatus + " to " + !currentStatus);
+
         DishDAO.toggleFavorite(currentUserId, dish.getId(), new DishDAO.FavoriteCallback() {
             @Override
             public void onSuccess(String message) {
+                Log.d("AllDishes", "Toggle favorite success: " + message);
                 Toast.makeText(AllDishesActivity.this, message, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(String error) {
+                Log.e("AllDishes", "Toggle favorite error: " + error);
+                // Revert cache nếu có lỗi
+                favoriteCache.put(dish.getId(), currentStatus);
+                dishAdapter.notifyDataSetChanged();
                 Toast.makeText(AllDishesActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload favorite status khi quay lại từ DishDetailActivity
+        if (!allDishes.isEmpty()) {
+            loadFavoriteStatus();
+        }
     }
 }
