@@ -24,8 +24,13 @@ import com.example.myapplication.entity.RecentDishAdapter;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
 import com.example.myapplication.entity.Category;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class HomeActivity extends AppCompatActivity {
     private TextView userNameTextView;
@@ -78,17 +83,53 @@ public class HomeActivity extends AppCompatActivity {
         if (avatarUrl != null && !avatarUrl.isEmpty()) {
             try {
                 if (avatarUrl.startsWith("/")) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(avatarUrl);
-                    if (bitmap != null) {
-                        imageView.setImageBitmap(bitmap);
+                    Bitmap originalBitmap = BitmapFactory.decodeFile(avatarUrl);
+                    if (originalBitmap != null) {
+                        // Tạo bitmap tròn
+                        Bitmap circularBitmap = getCircularBitmap(originalBitmap);
+                        imageView.setImageBitmap(circularBitmap);
+                    } else {
+                        // Sử dụng ảnh mặc định
+                        imageView.setImageResource(R.drawable.ic_profile_placeholder);
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                imageView.setImageResource(R.drawable.ic_profile_placeholder);
             }
+        } else {
+            imageView.setImageResource(R.drawable.ic_profile_placeholder);
         }
     }
 
+    // Thêm method tạo bitmap tròn
+    private Bitmap getCircularBitmap(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int size = Math.min(width, height);
+
+        Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(output);
+
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
+
+        // Vẽ hình tròn
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint);
+
+        // Cắt ảnh theo hình tròn
+        paint.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN));
+
+        // Tính toán để crop từ giữa ảnh
+        int x = (width - size) / 2;
+        int y = (height - size) / 2;
+
+        canvas.drawBitmap(bitmap, -x, -y, paint);
+
+        return output;
+    }
     private void loadUserAvatarFromDatabase() {
         UserDAO.getUserById(currentUserId, new UserDAO.UserCallback() {
             @Override
@@ -103,40 +144,7 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    // THAY ĐỔI: Load món được yêu thích nhiều nhất thay vì categories cố định
-//    private void loadMostFavoriteDishes() {
-//        Log.d("HomeActivity", "Loading most favorite dishes...");
-//
-//        DishDAO.getMostFavoriteDishes(6, new DishDAO.DishCallback() {
-//            @Override
-//            public void onSuccess(List<Dish> dishes) {
-//                Log.d("HomeActivity", "Received " + dishes.size() + " favorite dishes");
-//
-//                if (dishes.size() > 0) {
-//                    for (Dish dish : dishes) {
-//                        Log.d("HomeActivity", "Dish: " + dish.getName());
-//                    }
-//
-//                    favoriteDishAdapter = new FavoriteDishAdapter(dishes, HomeActivity.this::onFavoriteDishClick);
-//                    favoriteDishRecyclerView.setLayoutManager(new GridLayoutManager(HomeActivity.this, 2));
-//                    favoriteDishRecyclerView.setAdapter(favoriteDishAdapter);
-//
-//                    Log.d("HomeActivity", "Adapter set successfully");
-//                } else {
-//                    Log.w("HomeActivity", "No favorite dishes found, loading all dishes as fallback");
-//                    loadAllDishesAsFallback();
-//                }
-//            }
-//
-//            @Override
-//            public void onError(String error) {
-//                Log.e("HomeActivity", "Error loading favorite dishes: " + error);
-//                Toast.makeText(HomeActivity.this, "Lỗi tải món yêu thích: " + error, Toast.LENGTH_SHORT).show();
-//                // Fallback: load all dishes
-//                loadAllDishesAsFallback();
-//            }
-//        });
-//    }
+
 
 
     // Trong HomeActivity.java
@@ -210,7 +218,8 @@ public class HomeActivity extends AppCompatActivity {
                 List<RecentDish> recentDishes = new ArrayList<>();
                 for (Dish dish : dishes) {
                     String timeAgo = calculateTimeAgo(dish.getCreatedAt());
-                    recentDishes.add(new RecentDish(dish.getName(), timeAgo, R.drawable.ic_dish_placeholder));
+                    // Truyền thêm dish.getId() vào constructor
+                    recentDishes.add(new RecentDish(dish.getName(), timeAgo, R.drawable.ic_dish_placeholder, dish.getId()));
                 }
 
                 recentDishAdapter = new RecentDishAdapter(recentDishes, HomeActivity.this::onRecentDishClick);
@@ -254,8 +263,13 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void onRecentDishClick(RecentDish recentDish) {
-        Toast.makeText(this, "Clicked: " + recentDish.getName(), Toast.LENGTH_SHORT).show();
+        // Sử dụng dishId từ RecentDish để chuyển sang DishDetailActivity
+        Intent intent = new Intent(HomeActivity.this, DishDetailActivity.class);
+        intent.putExtra("DISH_ID", recentDish.getDishId());
+        intent.putExtra("USER_ID", currentUserId);
+        startActivity(intent);
     }
+
 
     private void openProfile() {
         Intent intent = new Intent(this, ProfileActivity.class);
@@ -278,6 +292,27 @@ public class HomeActivity extends AppCompatActivity {
         loadUserAvatarFromDatabase(); // Refresh avatar mỗi khi quay lại HomeActivity
     }
     private String calculateTimeAgo(String createdAt) {
-        return "Cách đây 5 ngày";
+        try {
+            // Giả sử createdAt có format: "yyyy-MM-dd HH:mm:ss"
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date createdDate = sdf.parse(createdAt);
+            Date currentDate = new Date();
+
+            long diffInMillis = currentDate.getTime() - createdDate.getTime();
+            long diffInDays = TimeUnit.MILLISECONDS.toDays(diffInMillis);
+
+            if (diffInDays == 0) {
+                return "Hôm nay";
+            } else if (diffInDays == 1) {
+                return "Hôm qua";
+            } else if (diffInDays < 7) {
+                return "Cách đây " + diffInDays + " ngày";
+            } else {
+                return "Cách đây " + (diffInDays / 7) + " tuần";
+            }
+        } catch (Exception e) {
+            return "Cách đây vài ngày";
+        }
     }
+
 }

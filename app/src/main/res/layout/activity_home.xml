@@ -15,6 +15,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Profile Image -->
+        <!-- Profile Image -->
         <ImageView
             android:id="@+id/profileImageView"
             android:layout_width="40dp"
@@ -22,8 +23,11 @@
             android:layout_marginTop="15dp"
             android:background="@drawable/circle_orange_background"
             android:src="@drawable/ic_profile_placeholder"
+            android:scaleType="centerCrop"
+            android:clipToOutline="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
 
         <!-- User Name -->
         <TextView
