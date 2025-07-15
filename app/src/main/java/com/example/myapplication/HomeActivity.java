@@ -218,8 +218,14 @@ public class HomeActivity extends AppCompatActivity {
                 List<RecentDish> recentDishes = new ArrayList<>();
                 for (Dish dish : dishes) {
                     String timeAgo = calculateTimeAgo(dish.getCreatedAt());
-                    // Truyền thêm dish.getId() vào constructor
-                    recentDishes.add(new RecentDish(dish.getName(), timeAgo, R.drawable.ic_dish_placeholder, dish.getId()));
+                    // Truyền thêm imageUrl từ dish
+                    recentDishes.add(new RecentDish(
+                            dish.getName(),
+                            timeAgo,
+                            R.drawable.ic_dish_placeholder,
+                            dish.getId(),
+                            dish.getImageUrl() // Thêm imageUrl
+                    ));
                 }
 
                 recentDishAdapter = new RecentDishAdapter(recentDishes, HomeActivity.this::onRecentDishClick);

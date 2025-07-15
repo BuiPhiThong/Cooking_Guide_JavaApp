@@ -4,43 +4,63 @@ public class RecentDish {
     private String name;
     private String timeAgo;
     private int imageResource;
-    private int dishId; // Thêm field này
+    private int dishId;
+    private String imageUrl; // Thêm field này
 
-    // Constructor mới
+    // Constructor mới với imageUrl
+    public RecentDish(String name, String timeAgo, int imageResource, int dishId, String imageUrl) {
+        this.name = name;
+        this.timeAgo = timeAgo;
+        this.imageResource = imageResource;
+        this.dishId = dishId;
+        this.imageUrl = imageUrl;
+    }
+
+    // Constructor cũ (để tương thích)
     public RecentDish(String name, String timeAgo, int imageResource, int dishId) {
         this.name = name;
         this.timeAgo = timeAgo;
         this.imageResource = imageResource;
         this.dishId = dishId;
+        this.imageUrl = null;
     }
 
-    // Constructor cũ (để tương thích)
-    public RecentDish(String name, String timeAgo, int imageResource) {
+    // Getter và setter cho imageUrl
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    // Các getter/setter khác giữ nguyên...
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
         this.name = name;
-        this.timeAgo = timeAgo;
-        this.imageResource = imageResource;
-        this.dishId = 0; // Giá trị mặc định
     }
 
-    // Getter cho dishId
     public int getDishId() {
         return dishId;
     }
 
-    // Setter cho dishId
     public void setDishId(int dishId) {
         this.dishId = dishId;
     }
 
-    // Các getter/setter khác giữ nguyên...
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public int getImageResource() {
+        return imageResource;
+    }
 
-    public String getTimeAgo() { return timeAgo; }
-    public void setTimeAgo(String timeAgo) { this.timeAgo = timeAgo; }
+    public void setImageResource(int imageResource) {
+        this.imageResource = imageResource;
+    }
 
-    public int getImageResource() { return imageResource; }
-    public void setImageResource(int imageResource) { this.imageResource = imageResource; }
+    public String getTimeAgo() {
+        return timeAgo;
+    }
+
+    public void setTimeAgo(String timeAgo) {
+        this.timeAgo = timeAgo;
+    }
 }
-
-
