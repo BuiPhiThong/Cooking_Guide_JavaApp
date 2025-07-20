@@ -63,9 +63,11 @@
             android:id="@+id/cookingStepsEditText"
             android:layout_width="match_parent"
             android:layout_height="120dp"
-            android:hint="Cách làm"
+            android:hint="Nhập cách làm (mỗi bước một dòng):&#10;Ví dụ:&#10;Nấu cơm&#10;Cuộn nguyên liệu&#10;Cắt và dùng"
             android:gravity="top"
+            android:inputType="textMultiLine"
             android:layout_marginBottom="16dp" />
+
 
         <Spinner
             android:id="@+id/difficultySpinner"

@@ -73,6 +73,41 @@ public class AddDishActivity extends AppCompatActivity {
         }
     }
 
+//    private void saveDish() {
+//        String name = dishNameEditText.getText().toString().trim();
+//        String description = dishDescriptionEditText.getText().toString().trim();
+//        String ingredients = ingredientsEditText.getText().toString().trim();
+//        String cookingSteps = cookingStepsEditText.getText().toString().trim();
+//        String difficulty = difficultySpinner.getSelectedItem().toString();
+//
+//        if (name.isEmpty() || description.isEmpty() || ingredients.isEmpty() || cookingSteps.isEmpty()) {
+//            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        Dish newDish = new Dish();
+//        newDish.setName(name);
+//        newDish.setDescription(description);
+//        newDish.setIngredient(ingredients);
+//        newDish.setCookingSteps(cookingSteps);
+//        newDish.setDifficultyLevel(difficulty);
+//        newDish.setUserId(adminId);
+//        newDish.setImageUrl(dishImagePath);
+//
+//        DishDAO.addDish(newDish, new DishDAO.AddDishCallback() {
+//            @Override
+//            public void onSuccess() {
+//                Toast.makeText(AddDishActivity.this, "Đã thêm món ăn thành công", Toast.LENGTH_SHORT).show();
+//                finish();
+//            }
+//
+//            @Override
+//            public void onError(String error) {
+//                Toast.makeText(AddDishActivity.this, "Lỗi thêm món ăn: " + error, Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//    }
+
     private void saveDish() {
         String name = dishNameEditText.getText().toString().trim();
         String description = dishDescriptionEditText.getText().toString().trim();
@@ -85,11 +120,14 @@ public class AddDishActivity extends AppCompatActivity {
             return;
         }
 
+        // TỰ ĐỘNG FORMAT COOKING STEPS TỪ XUỐNG DÒNG
+        String formattedCookingSteps = formatCookingStepsFromNewLines(cookingSteps);
+
         Dish newDish = new Dish();
         newDish.setName(name);
         newDish.setDescription(description);
         newDish.setIngredient(ingredients);
-        newDish.setCookingSteps(cookingSteps);
+        newDish.setCookingSteps(formattedCookingSteps);
         newDish.setDifficultyLevel(difficulty);
         newDish.setUserId(adminId);
         newDish.setImageUrl(dishImagePath);
@@ -106,6 +144,47 @@ public class AddDishActivity extends AppCompatActivity {
                 Toast.makeText(AddDishActivity.this, "Lỗi thêm món ăn: " + error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+
+    private String formatCookingStepsFromNewLines(String rawSteps) {
+        if (rawSteps == null || rawSteps.trim().isEmpty()) {
+            return rawSteps;
+        }
+
+        // Tách các bước bằng xuống dòng
+        String[] steps = rawSteps.split("\\n");
+        StringBuilder formattedSteps = new StringBuilder();
+
+        int stepNumber = 1;
+        for (String step : steps) {
+            String trimmedStep = step.trim();
+            if (!trimmedStep.isEmpty()) {
+                // Loại bỏ số thứ tự cũ nếu có
+                trimmedStep = trimmedStep.replaceFirst("^\\d+[\\.\\)]\\s*", "");
+
+                formattedSteps.append(stepNumber).append(". ").append(trimmedStep);
+
+                // Thêm \\n để lưu database (trừ bước cuối)
+                if (stepNumber < countNonEmptySteps(steps)) {
+                    formattedSteps.append("\\n");
+                }
+                stepNumber++;
+            }
+        }
+
+        return formattedSteps.toString();
+    }
+
+
+    private int countNonEmptySteps(String[] steps) {
+        int count = 0;
+        for (String step : steps) {
+            if (!step.trim().isEmpty()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private String saveDishImage(Bitmap bitmap, String filename) {
