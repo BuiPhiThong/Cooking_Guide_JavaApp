@@ -27,7 +27,7 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <!-- Username -->
+                <!-- Username (giữ nguyên ID) -->
                 <TextView
                     android:id="@+id/usernameTextView"
                     android:layout_width="wrap_content"
@@ -38,7 +38,7 @@
                     android:textColor="#333333"
                     android:layout_marginBottom="4dp" />
 
-                <!-- Email -->
+                <!-- Email (giữ nguyên ID) -->
                 <TextView
                     android:id="@+id/emailTextView"
                     android:layout_width="wrap_content"
@@ -48,7 +48,7 @@
                     android:textColor="#666666"
                     android:layout_marginBottom="4dp" />
 
-                <!-- Full Name -->
+                <!-- Full Name (giữ nguyên ID) -->
                 <TextView
                     android:id="@+id/fullNameTextView"
                     android:layout_width="wrap_content"
@@ -59,18 +59,26 @@
 
             </LinearLayout>
 
-            <!-- Role Badge -->
-            <TextView
-                android:id="@+id/roleTextView"
+            <!-- Role Badge (giữ nguyên ID) -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="USER"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:background="@drawable/role_badge_background"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:layout_gravity="top" />
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E3F2FD"
+                android:layout_gravity="top">
+
+                <TextView
+                    android:id="@+id/roleTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="USER"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#1976D2"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp" />
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
 
@@ -81,26 +89,34 @@
             android:orientation="horizontal"
             android:gravity="end">
 
+            <!-- Edit Button (ẩn hoặc GONE nhưng giữ nguyên ID) -->
             <Button
                 android:id="@+id/editButton"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="Sửa"
-                android:textSize="12sp"
-                android:backgroundTint="#FF6B35"
-                android:textColor="#FFFFFF"
-                android:layout_marginEnd="8dp"
-                android:minWidth="60dp" />
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                android:text="Sửa" />
 
-            <Button
-                android:id="@+id/deleteButton"
+            <!-- Delete Button (giữ nguyên ID) -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="Xóa"
-                android:textSize="12sp"
-                android:backgroundTint="#DC3545"
-                android:textColor="#FFFFFF"
-                android:minWidth="60dp" />
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#DC3545">
+
+                <Button
+                    android:id="@+id/deleteButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="🗑️ Xóa người dùng"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:background="@android:color/transparent"
+                    android:paddingHorizontal="16dp"
+                    android:minWidth="120dp" />
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
 
