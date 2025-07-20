@@ -82,6 +82,18 @@
             android:exported="false" />
         <activity android:name=".EditDishActivity" android:exported="false" />
 
+
+        <!-- Thêm vào AndroidManifest.xml -->
+        <activity
+            android:name=".AdminProfileActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".AdminEditProfileActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
     </application>
 
 </manifest>
