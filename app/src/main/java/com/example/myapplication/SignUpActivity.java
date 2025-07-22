@@ -1,13 +1,14 @@
 package com.example.myapplication;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
 
 import com.example.myapplication.dao.UserDAO;
 
@@ -38,6 +39,7 @@ public class SignUpActivity extends AppCompatActivity {
         continueButton.setOnClickListener(v -> performSignUp());
         signInLinkTextView.setOnClickListener(v -> goToSignIn());
     }
+
     private boolean validateInput(String email, String password) {
         boolean valid = true;
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -60,7 +62,7 @@ public class SignUpActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
 
         if (!termsCheckBox.isChecked()) {
-            Toast.makeText(this, "Bạn phải đồng ý điều khoản!", Toast.LENGTH_SHORT).show();
+            showSnackbar("⚠️ Bạn phải đồng ý điều khoản!", false);
             return;
         }
 
@@ -71,23 +73,47 @@ public class SignUpActivity extends AppCompatActivity {
         // Tạo username mặc định từ email (hoặc thêm trường nhập username nếu muốn)
         String username = email.split("@")[0];
 
+        // Show loading state
+        continueButton.setEnabled(false);
+        continueButton.setText("Đang đăng ký...");
+
         // Gọi UserDAO để đăng ký
         UserDAO.register(username, email, password, new UserDAO.RegisterCallback() {
             @Override
             public void onSuccess() {
-                Toast.makeText(SignUpActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
-                finish(); // Quay lại màn hình đăng nhập
+                showSnackbar("✅ Đăng ký thành công!", true);
+                new android.os.Handler().postDelayed(() -> finish(), 2000); // Quay lại màn hình đăng nhập sau 2s
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(SignUpActivity.this, "Lỗi đăng ký: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi đăng ký: " + error, false);
+                continueButton.setEnabled(true);
+                continueButton.setText("Tiếp tục");
             }
         });
     }
 
-
     private void goToSignIn() {
         finish(); // Quay lại màn hình đăng nhập
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

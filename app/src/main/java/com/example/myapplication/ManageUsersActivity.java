@@ -2,12 +2,13 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.entity.AdminUserAdapter; // Sửa import
 import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.User;
@@ -47,11 +48,15 @@ public class ManageUsersActivity extends AppCompatActivity {
                 usersList.clear();
                 usersList.addAll(users);
                 userAdapter.notifyDataSetChanged();
+
+                if (users.isEmpty()) {
+                    showSnackbar("📋 Chưa có người dùng nào trong hệ thống", false);
+                }
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(ManageUsersActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi tải danh sách người dùng: " + error, false);
             }
         });
     }
@@ -70,7 +75,7 @@ public class ManageUsersActivity extends AppCompatActivity {
         if (requestCode == EDIT_USER_REQUEST && resultCode == RESULT_OK) {
             // Reload danh sách users sau khi chỉnh sửa thành công
             loadAllUsers();
-            Toast.makeText(this, "Đã cập nhật thông tin người dùng", Toast.LENGTH_SHORT).show();
+            showSnackbar("✅ Đã cập nhật thông tin người dùng", true);
         }
     }
 
@@ -82,17 +87,36 @@ public class ManageUsersActivity extends AppCompatActivity {
                     UserDAO.deleteUser(user.getId(), new UserDAO.DeleteCallback() {
                         @Override
                         public void onSuccess() {
-                            Toast.makeText(ManageUsersActivity.this, "Đã xóa người dùng", Toast.LENGTH_SHORT).show();
+                            showSnackbar("🗑️ Đã xóa người dùng thành công", true);
                             loadAllUsers();
                         }
 
                         @Override
                         public void onError(String error) {
-                            Toast.makeText(ManageUsersActivity.this, "Lỗi xóa: " + error, Toast.LENGTH_SHORT).show();
+                            showSnackbar("❌ Lỗi xóa người dùng: " + error, false);
                         }
                     });
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

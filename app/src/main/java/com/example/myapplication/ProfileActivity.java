@@ -4,13 +4,12 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.User;
 
@@ -70,7 +69,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
-                Toast.makeText(ProfileActivity.this, "Lỗi tải thông tin: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi tải thông tin: " + error, false);
             }
         });
     }
@@ -99,20 +98,28 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         logoutButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
+            showSnackbar("ℹ️ Đang đăng xuất...", true);
+
+            // Delay 1.5 giây trước khi logout để user thấy được thông báo
+            new android.os.Handler().postDelayed(() -> {
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }, 1500); // 1.5 giây
         });
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && resultCode == RESULT_OK) {
+            showSnackbar("✅ Thông tin đã được cập nhật!", true);
             reloadUserInfo();
         }
     }
+
 
     private void reloadUserInfo() {
         UserDAO.getUserById(currentUserId, new UserDAO.UserCallback() {
@@ -126,8 +133,32 @@ public class ProfileActivity extends AppCompatActivity {
             }
             @Override
             public void onError(String error) {
-                Toast.makeText(ProfileActivity.this, "Lỗi tải lại thông tin: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi tải lại thông tin: " + error, false);
             }
         });
     }
+
+    // Method để hiển thị Snackbar đẹp
+
+    // Method để hiển thị Snackbar đẹp với thời gian hiển thị lâu hơn
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+
+        if (isSuccess) {
+            Snackbar snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+            snackbar.setTextColor(getResources().getColor(android.R.color.white));
+            snackbar.show();
+        } else {
+            Snackbar snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_INDEFINITE);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+            snackbar.setTextColor(getResources().getColor(android.R.color.white));
+            snackbar.show();
+        }
+    }
+
+
 }

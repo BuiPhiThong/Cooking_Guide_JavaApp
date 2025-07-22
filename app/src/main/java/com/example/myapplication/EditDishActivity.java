@@ -5,16 +5,16 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
 import java.io.FileOutputStream;
-import java.util.List;
 
 public class EditDishActivity extends AppCompatActivity {
     private EditText dishNameEditText, dishDescriptionEditText, ingredientsEditText, cookingStepsEditText;
@@ -56,11 +56,10 @@ public class EditDishActivity extends AppCompatActivity {
         saveDishButton.setOnClickListener(v -> saveDish());
     }
 
-
     private void loadDishData() {
         if (dishId <= 0) {
-            Toast.makeText(this, "ID món ăn không hợp lệ", Toast.LENGTH_SHORT).show();
-            finish();
+            showSnackbar("❌ ID món ăn không hợp lệ", false);
+            new android.os.Handler().postDelayed(() -> finish(), 2000);
             return;
         }
 
@@ -102,19 +101,18 @@ public class EditDishActivity extends AppCompatActivity {
                         dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
                     }
                 } else {
-                    Toast.makeText(EditDishActivity.this, "Không tìm thấy thông tin món ăn", Toast.LENGTH_SHORT).show();
-                    finish();
+                    showSnackbar("❌ Không tìm thấy thông tin món ăn", false);
+                    new android.os.Handler().postDelayed(() -> finish(), 2000);
                 }
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(EditDishActivity.this, "Lỗi tải dữ liệu: " + error, Toast.LENGTH_SHORT).show();
-                finish();
+                showSnackbar("❌ Lỗi tải dữ liệu món ăn: " + error, false);
+                new android.os.Handler().postDelayed(() -> finish(), 2000);
             }
         });
     }
-
 
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
@@ -131,9 +129,9 @@ public class EditDishActivity extends AppCompatActivity {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 dishImageView.setImageBitmap(bitmap);
                 dishImagePath = saveDishImage(bitmap, "dish_" + dishId + "_" + System.currentTimeMillis() + ".png");
-                Toast.makeText(this, "Đã chọn ảnh mới", Toast.LENGTH_SHORT).show();
+                showSnackbar("📷 Đã chọn ảnh mới", true);
             } catch (Exception e) {
-                Toast.makeText(this, "Lỗi chọn ảnh", Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi chọn ảnh", false);
             }
         }
     }
@@ -146,7 +144,7 @@ public class EditDishActivity extends AppCompatActivity {
         String difficulty = difficultySpinner.getSelectedItem().toString();
 
         if (name.isEmpty() || description.isEmpty() || ingredients.isEmpty() || cookingSteps.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+            showSnackbar("⚠️ Vui lòng nhập đầy đủ thông tin", false);
             return;
         }
 
@@ -167,17 +165,25 @@ public class EditDishActivity extends AppCompatActivity {
             updatedDish.setImageUrl(currentDish.getImageUrl());
         }
 
+        // Show loading state
+        saveDishButton.setEnabled(false);
+        saveDishButton.setText("Đang cập nhật...");
+
         DishDAO.updateDish(updatedDish, new DishDAO.AddDishCallback() {
             @Override
             public void onSuccess() {
-                Toast.makeText(EditDishActivity.this, "Cập nhật món ăn thành công", Toast.LENGTH_SHORT).show();
-                setResult(RESULT_OK);
-                finish();
+                showSnackbar("✅ Cập nhật món ăn thành công", true);
+                new android.os.Handler().postDelayed(() -> {
+                    setResult(RESULT_OK);
+                    finish();
+                }, 1500);
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(EditDishActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi cập nhật món ăn: " + error, false);
+                saveDishButton.setEnabled(true);
+                saveDishButton.setText("Lưu thay đổi");
             }
         });
     }
@@ -190,5 +196,24 @@ public class EditDishActivity extends AppCompatActivity {
             e.printStackTrace();
             return null;
         }
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

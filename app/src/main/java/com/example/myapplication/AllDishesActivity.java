@@ -4,18 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.adapter.DishAdapter;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
@@ -70,7 +69,6 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
         backButton.setOnClickListener(v -> finish());
 
         currentUserId = getIntent().getIntExtra("USER_ID", 0);
-        Log.d("AllDishes", "User ID: " + currentUserId);
     }
 
     private void setupRecyclerView() {
@@ -135,7 +133,6 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
         DishDAO.getAllDishes(new DishDAO.DishCallback() {
             @Override
             public void onSuccess(List<Dish> dishes) {
-                Log.d("AllDishes", "Loaded " + dishes.size() + " dishes");
                 allDishes.clear();
                 allDishes.addAll(dishes);
 
@@ -145,9 +142,8 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
 
             @Override
             public void onError(String error) {
-                Log.e("AllDishes", "Error loading dishes: " + error);
                 showLoading(false);
-                Toast.makeText(AllDishesActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi tải danh sách món ăn: " + error, false);
             }
         });
     }
@@ -177,15 +173,11 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
                     favoriteCache.put(dish.getId(), isFavorite);
                     checkedCount[0]++;
 
-                    Log.d("AllDishes", "Dish " + dish.getId() + " favorite: " + isFavorite +
-                            " (" + checkedCount[0] + "/" + totalCount + ")");
-
                     // Khi đã kiểm tra xong tất cả
                     if (checkedCount[0] == totalCount) {
                         runOnUiThread(() -> {
                             showLoading(false);
                             applyFilters();
-                            Log.d("AllDishes", "All favorite status loaded");
                         });
                     }
                 }
@@ -196,9 +188,7 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
     // IMPLEMENT INTERFACE FavoriteChecker
     @Override
     public boolean isDishFavorite(int dishId) {
-        boolean isFavorite = favoriteCache.getOrDefault(dishId, false);
-        Log.d("AllDishes", "Checking favorite for dish " + dishId + ": " + isFavorite);
-        return isFavorite;
+        return favoriteCache.getOrDefault(dishId, false);
     }
 
     private void loadMoreDishes() {
@@ -237,9 +227,14 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
         if (filteredDishes.isEmpty()) {
             emptyTextView.setVisibility(View.VISIBLE);
             dishRecyclerView.setVisibility(View.GONE);
+            // CHỈ hiển thị thông báo khi không tìm thấy kết quả
+            if (!searchQuery.isEmpty() || !selectedDifficulty.isEmpty()) {
+                showSnackbar("🔍 Không tìm thấy món ăn phù hợp với bộ lọc", false);
+            }
         } else {
             emptyTextView.setVisibility(View.GONE);
             dishRecyclerView.setVisibility(View.VISIBLE);
+            // XÓA thông báo khi filter thành công
         }
     }
 
@@ -280,23 +275,20 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
         favoriteCache.put(dish.getId(), !currentStatus);
         dishAdapter.notifyDataSetChanged();
 
-        Log.d("AllDishes", "Toggling favorite for dish " + dish.getId() +
-                " from " + currentStatus + " to " + !currentStatus);
+        String actionMessage = !currentStatus ? "❤️ Đã thêm vào yêu thích" : "💔 Đã xóa khỏi yêu thích";
 
         DishDAO.toggleFavorite(currentUserId, dish.getId(), new DishDAO.FavoriteCallback() {
             @Override
             public void onSuccess(String message) {
-                Log.d("AllDishes", "Toggle favorite success: " + message);
-                Toast.makeText(AllDishesActivity.this, message, Toast.LENGTH_SHORT).show();
+                showSnackbar(actionMessage, true);
             }
 
             @Override
             public void onError(String error) {
-                Log.e("AllDishes", "Toggle favorite error: " + error);
                 // Revert cache nếu có lỗi
                 favoriteCache.put(dish.getId(), currentStatus);
                 dishAdapter.notifyDataSetChanged();
-                Toast.makeText(AllDishesActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi thao tác yêu thích: " + error, false);
             }
         });
     }
@@ -308,5 +300,24 @@ public class AllDishesActivity extends AppCompatActivity implements DishAdapter.
         if (!allDishes.isEmpty()) {
             loadFavoriteStatus();
         }
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }
