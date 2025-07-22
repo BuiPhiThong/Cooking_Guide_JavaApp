@@ -1,5 +1,7 @@
 package com.example.myapplication.adapter;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +31,6 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
         boolean isDishFavorite(int dishId);
     }
 
-    // Constructor với FavoriteChecker
     public DishAdapter(List<Dish> dishes, OnDishClickListener dishClickListener,
                        OnFavoriteClickListener favoriteClickListener, FavoriteChecker favoriteChecker) {
         this.dishes = dishes;
@@ -59,7 +60,7 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
 
     class DishViewHolder extends RecyclerView.ViewHolder {
         private TextView dishNameTextView, dishDescriptionTextView, difficultyTextView;
-        private ImageView favoriteImageView;
+        private ImageView favoriteImageView, dishImageView; // THÊM dishImageView
 
         public DishViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,12 +68,16 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
             dishDescriptionTextView = itemView.findViewById(R.id.dishDescriptionTextView);
             difficultyTextView = itemView.findViewById(R.id.difficultyTextView);
             favoriteImageView = itemView.findViewById(R.id.favoriteImageView);
+            dishImageView = itemView.findViewById(R.id.dishImageView); // THÊM ánh xạ
         }
 
         public void bind(Dish dish) {
             dishNameTextView.setText(dish.getName());
             dishDescriptionTextView.setText(dish.getDescription());
-            difficultyTextView.setText(dish.getDifficultyLevel());
+            difficultyTextView.setText(getDifficultyText(dish.getDifficultyLevel()));
+
+            // THÊM: Load ảnh món ăn
+            loadDishImage(dish.getImageUrl());
 
             // Kiểm tra trạng thái favorite
             boolean isFavorite = favoriteChecker != null && favoriteChecker.isDishFavorite(dish.getId());
@@ -91,6 +96,24 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
             });
         }
 
+        // THÊM method load ảnh
+        private void loadDishImage(String imageUrl) {
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                try {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imageUrl);
+                    if (bitmap != null) {
+                        dishImageView.setImageBitmap(bitmap);
+                    } else {
+                        dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+                    }
+                } catch (Exception e) {
+                    dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+                }
+            } else {
+                dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+            }
+        }
+
         private void updateFavoriteButton(boolean isFavorite) {
             if (isFavorite) {
                 favoriteImageView.setImageResource(R.drawable.ic_bookmark_filled);
@@ -98,6 +121,16 @@ public class DishAdapter extends RecyclerView.Adapter<DishAdapter.DishViewHolder
             } else {
                 favoriteImageView.setImageResource(R.drawable.ic_bookmark_border);
                 favoriteImageView.setColorFilter(itemView.getContext().getColor(android.R.color.darker_gray));
+            }
+        }
+
+        private String getDifficultyText(String difficulty) {
+            if (difficulty == null) return "Chưa xác định";
+            switch (difficulty.toLowerCase()) {
+                case "easy": return "Dễ làm";
+                case "medium": return "Trung bình";
+                case "hard": return "Khó";
+                default: return difficulty;
             }
         }
     }
