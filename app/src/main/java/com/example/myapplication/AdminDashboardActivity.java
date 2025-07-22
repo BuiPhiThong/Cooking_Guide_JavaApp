@@ -4,13 +4,14 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.User;
 
@@ -65,8 +66,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(String error) {
-                    Toast.makeText(AdminDashboardActivity.this,
-                            "Lỗi tải thông tin admin: " + error, Toast.LENGTH_SHORT).show();
+                    showSnackbar("❌ Lỗi tải thông tin admin: " + error, false);
                 }
             });
         }
@@ -126,5 +126,24 @@ public class AdminDashboardActivity extends AppCompatActivity {
         super.onResume();
         // Reload admin data when returning to dashboard
         loadAdminProfileData();
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

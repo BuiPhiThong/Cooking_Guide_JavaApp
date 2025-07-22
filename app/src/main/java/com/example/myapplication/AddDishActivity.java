@@ -5,12 +5,13 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
 import java.io.FileOutputStream;
@@ -66,47 +67,12 @@ public class AddDishActivity extends AppCompatActivity {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                 dishImageView.setImageBitmap(bitmap);
                 dishImagePath = saveDishImage(bitmap, "dish_" + System.currentTimeMillis() + ".png");
-                Toast.makeText(this, "Đã chọn ảnh", Toast.LENGTH_SHORT).show();
+                showSnackbar("📷 Đã chọn ảnh món ăn", true);
             } catch (Exception e) {
-                Toast.makeText(this, "Lỗi chọn ảnh", Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi chọn ảnh", false);
             }
         }
     }
-
-//    private void saveDish() {
-//        String name = dishNameEditText.getText().toString().trim();
-//        String description = dishDescriptionEditText.getText().toString().trim();
-//        String ingredients = ingredientsEditText.getText().toString().trim();
-//        String cookingSteps = cookingStepsEditText.getText().toString().trim();
-//        String difficulty = difficultySpinner.getSelectedItem().toString();
-//
-//        if (name.isEmpty() || description.isEmpty() || ingredients.isEmpty() || cookingSteps.isEmpty()) {
-//            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        Dish newDish = new Dish();
-//        newDish.setName(name);
-//        newDish.setDescription(description);
-//        newDish.setIngredient(ingredients);
-//        newDish.setCookingSteps(cookingSteps);
-//        newDish.setDifficultyLevel(difficulty);
-//        newDish.setUserId(adminId);
-//        newDish.setImageUrl(dishImagePath);
-//
-//        DishDAO.addDish(newDish, new DishDAO.AddDishCallback() {
-//            @Override
-//            public void onSuccess() {
-//                Toast.makeText(AddDishActivity.this, "Đã thêm món ăn thành công", Toast.LENGTH_SHORT).show();
-//                finish();
-//            }
-//
-//            @Override
-//            public void onError(String error) {
-//                Toast.makeText(AddDishActivity.this, "Lỗi thêm món ăn: " + error, Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//    }
 
     private void saveDish() {
         String name = dishNameEditText.getText().toString().trim();
@@ -116,7 +82,7 @@ public class AddDishActivity extends AppCompatActivity {
         String difficulty = difficultySpinner.getSelectedItem().toString();
 
         if (name.isEmpty() || description.isEmpty() || ingredients.isEmpty() || cookingSteps.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+            showSnackbar("⚠️ Vui lòng nhập đầy đủ thông tin", false);
             return;
         }
 
@@ -132,20 +98,25 @@ public class AddDishActivity extends AppCompatActivity {
         newDish.setUserId(adminId);
         newDish.setImageUrl(dishImagePath);
 
+        // Show loading state
+        saveDishButton.setEnabled(false);
+        saveDishButton.setText("Đang lưu...");
+
         DishDAO.addDish(newDish, new DishDAO.AddDishCallback() {
             @Override
             public void onSuccess() {
-                Toast.makeText(AddDishActivity.this, "Đã thêm món ăn thành công", Toast.LENGTH_SHORT).show();
-                finish();
+                showSnackbar("✅ Đã thêm món ăn thành công", true);
+                new android.os.Handler().postDelayed(() -> finish(), 1500);
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(AddDishActivity.this, "Lỗi thêm món ăn: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi thêm món ăn: " + error, false);
+                saveDishButton.setEnabled(true);
+                saveDishButton.setText("Lưu món ăn");
             }
         });
     }
-
 
     private String formatCookingStepsFromNewLines(String rawSteps) {
         if (rawSteps == null || rawSteps.trim().isEmpty()) {
@@ -176,7 +147,6 @@ public class AddDishActivity extends AppCompatActivity {
         return formattedSteps.toString();
     }
 
-
     private int countNonEmptySteps(String[] steps) {
         int count = 0;
         for (String step : steps) {
@@ -195,5 +165,24 @@ public class AddDishActivity extends AppCompatActivity {
             e.printStackTrace();
             return null;
         }
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

@@ -6,11 +6,12 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.User;
 import java.io.FileOutputStream;
@@ -54,7 +55,7 @@ public class AdminEditProfileActivity extends AppCompatActivity {
         if (adminId != 0) {
             loadAdminData();
         } else {
-            Toast.makeText(this, "Lỗi: Không tìm thấy thông tin admin", Toast.LENGTH_SHORT).show();
+            showSnackbar("❌ Lỗi: Không tìm thấy thông tin admin", false);
             finish();
         }
     }
@@ -77,9 +78,8 @@ public class AdminEditProfileActivity extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
-                Toast.makeText(AdminEditProfileActivity.this,
-                        "Lỗi tải thông tin: " + error, Toast.LENGTH_SHORT).show();
-                finish();
+                showSnackbar("❌ Lỗi tải thông tin admin: " + error, false);
+                new android.os.Handler().postDelayed(() -> finish(), 2000);
             }
         });
     }
@@ -124,13 +124,13 @@ public class AdminEditProfileActivity extends AppCompatActivity {
         String bio = editBio.getText().toString().trim();
 
         if (username.isEmpty() || fullName.isEmpty() || email.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+            showSnackbar("⚠️ Vui lòng nhập đầy đủ thông tin", false);
             return;
         }
 
         // Validate email format
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, "Email không hợp lệ", Toast.LENGTH_SHORT).show();
+            showSnackbar("📧 Email không hợp lệ", false);
             return;
         }
 
@@ -160,18 +160,18 @@ public class AdminEditProfileActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
-                    Toast.makeText(AdminEditProfileActivity.this,
-                            "Cập nhật thông tin admin thành công", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
-                    finish();
+                    showSnackbar("✅ Cập nhật thông tin admin thành công", true);
+                    new android.os.Handler().postDelayed(() -> {
+                        setResult(RESULT_OK);
+                        finish();
+                    }, 1500);
                 });
             }
 
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
-                    Toast.makeText(AdminEditProfileActivity.this,
-                            "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+                    showSnackbar("❌ Lỗi cập nhật thông tin: " + error, false);
                     saveProfileButton.setEnabled(true);
                     saveProfileButton.setText("Lưu thông tin");
                 });
@@ -192,8 +192,9 @@ public class AdminEditProfileActivity extends AppCompatActivity {
 
                 // Lưu ảnh vào internal storage với tên riêng cho admin
                 avatarPath = saveProfileImage(bitmap, "avatar_admin_" + adminId + ".png");
+                showSnackbar("📷 Ảnh đại diện đã được chọn", true);
             } catch (Exception e) {
-                Toast.makeText(this, "Lỗi chọn ảnh", Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi chọn ảnh", false);
             }
         }
     }
@@ -206,5 +207,24 @@ public class AdminEditProfileActivity extends AppCompatActivity {
             e.printStackTrace();
             return null;
         }
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

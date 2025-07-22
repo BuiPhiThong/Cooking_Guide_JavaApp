@@ -1,13 +1,13 @@
 package com.example.myapplication;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.entity.CookingStepAdapter;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
 public class DishDetailActivity extends AppCompatActivity {
     private ImageView backButton, favoriteButton, dishImageView;
@@ -57,8 +55,6 @@ public class DishDetailActivity extends AppCompatActivity {
         dishId = getIntent().getIntExtra("DISH_ID", 0);
         currentUserId = getIntent().getIntExtra("USER_ID", 0);
 
-        Log.d("DishDetail", "Loading dish ID: " + dishId + " for user: " + currentUserId);
-
         // Setup RecyclerView
         stepsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         stepsRecyclerView.setNestedScrollingEnabled(false);
@@ -73,15 +69,12 @@ public class DishDetailActivity extends AppCompatActivity {
         DishDAO.getDishById(dishId, new DishDAO.DishDetailCallback() {
             @Override
             public void onSuccess(Dish dish) {
-                Log.d("DishDetail", "Dish loaded: " + dish.getName());
-                Log.d("DishDetail", "Cooking steps: " + dish.getCookingSteps());
                 displayDishDetails(dish);
             }
 
             @Override
             public void onError(String error) {
-                Log.e("DishDetail", "Error loading dish: " + error);
-                Toast.makeText(DishDetailActivity.this, "Lỗi tải món ăn: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi tải món ăn: " + error, false);
                 finish();
             }
         });
@@ -111,39 +104,28 @@ public class DishDetailActivity extends AppCompatActivity {
         List<CookingStep> steps = parseCookingStepsFromDatabase(dish.getCookingSteps());
         stepAdapter = new CookingStepAdapter(steps);
         stepsRecyclerView.setAdapter(stepAdapter);
-
-        Log.d("DishDetail", "Parsed " + steps.size() + " cooking steps");
     }
+
     private void loadDishImage(String imageUrl) {
         if (imageUrl != null && !imageUrl.isEmpty()) {
             try {
-                // Log để debug
-                Log.d("DishDetail", "Loading image from: " + imageUrl);
-
                 // Decode ảnh từ đường dẫn local
                 android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imageUrl);
 
                 if (bitmap != null) {
-                    // Hiển thị ảnh thành công
                     dishImageView.setImageBitmap(bitmap);
-                    Log.d("DishDetail", "Image loaded successfully");
                 } else {
-                    // Không decode được ảnh, hiển thị ảnh mặc định
-                    Log.w("DishDetail", "Cannot decode image from path: " + imageUrl);
                     dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+                    showSnackbar("⚠️ Không thể tải hình ảnh món ăn", false);
                 }
             } catch (Exception e) {
-                // Có lỗi khi load ảnh, hiển thị ảnh mặc định
-                Log.e("DishDetail", "Error loading image: " + e.getMessage());
                 dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
+                showSnackbar("⚠️ Lỗi khi tải hình ảnh", false);
             }
         } else {
-            // Không có URL ảnh, hiển thị ảnh mặc định
-            Log.d("DishDetail", "No image URL provided, using placeholder");
             dishImageView.setImageResource(R.drawable.ic_dish_placeholder);
         }
     }
-
 
     private String getDifficultyText(String difficulty) {
         if (difficulty == null) return "Chưa xác định";
@@ -175,10 +157,6 @@ public class DishDetailActivity extends AppCompatActivity {
     /**
      * Parse cooking_steps từ cột cooking_steps trong bảng Dishes
      * Format trong database: "1. Boil pasta\n2. Cook pancetta\n3. Mix with eggs and cheese"
-     */
-    /**
-     * Parse cooking_steps từ cột cooking_steps trong bảng Dishes
-     * Format trong database: "1. Butter bread\n2. Add cheese\n3. Grill until golden brown"
      */
     private List<CookingStep> parseCookingStepsFromDatabase(String cookingSteps) {
         List<CookingStep> steps = new ArrayList<>();
@@ -224,12 +202,13 @@ public class DishDetailActivity extends AppCompatActivity {
             public void onSuccess(String message) {
                 isFavorite = !isFavorite;
                 updateFavoriteButton();
-                Toast.makeText(DishDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+                String actionMessage = isFavorite ? "❤️ Đã thêm vào yêu thích" : "💔 Đã xóa khỏi yêu thích";
+                showSnackbar(actionMessage, true);
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(DishDetailActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi thao tác yêu thích: " + error, false);
             }
         });
     }
@@ -242,5 +221,24 @@ public class DishDetailActivity extends AppCompatActivity {
             favoriteButton.setImageResource(R.drawable.ic_bookmark_border);
             favoriteButton.setColorFilter(getColor(android.R.color.darker_gray));
         }
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

@@ -5,17 +5,18 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import com.google.android.material.snackbar.Snackbar;
 
 import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.User;
-import com.example.myapplication.connnectDB.TestConnectionActivity;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText emailEditText, passwordEditText;
-    private Button signInButton, testConnectionButton;
+    private Button signInButton;
     private TextView signUpLinkTextView;
+    private CoordinatorLayout coordinatorLayout; // Thêm để làm container cho Snackbar
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,22 +28,16 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+        coordinatorLayout = findViewById(R.id.coordinatorLayout); // Thêm dòng này
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         signInButton = findViewById(R.id.signInButton);
-        testConnectionButton = findViewById(R.id.testConnectionButton);
         signUpLinkTextView = findViewById(R.id.signUpLinkTextView);
     }
 
     private void setupClickListeners() {
         signInButton.setOnClickListener(v -> performSignIn());
-        testConnectionButton.setOnClickListener(v -> openTestConnection());
         signUpLinkTextView.setOnClickListener(v -> goToSignUp());
-    }
-
-    private void openTestConnection() {
-        Intent intent = new Intent(this, TestConnectionActivity.class);
-        startActivity(intent);
     }
 
     private void performSignIn() {
@@ -50,7 +45,8 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            // Thay Toast bằng Snackbar với màu đỏ cho error
+            showErrorSnackbar("Please fill all fields");
             return;
         }
 
@@ -64,34 +60,36 @@ public class LoginActivity extends AppCompatActivity {
                 signInButton.setEnabled(true);
                 signInButton.setText("Sign In");
 
-                // THAY THẾ ĐOẠN NÀY ▼▼▼
-                // Kiểm tra role để chuyển màn hình phù hợp
-                if ("admin".equals(user.getRole())) {
-                    // Chuyển đến Admin Dashboard
-                    Intent intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
-                    intent.putExtra("USER_ID", user.getId());
-                    intent.putExtra("USERNAME", user.getUsername());
-                    intent.putExtra("EMAIL", user.getEmail());
-                    startActivity(intent);
-                    finish();
-                } else {
-                    // Chuyển đến Home bình thường cho user
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    intent.putExtra("USER_ID", user.getId());
-                    intent.putExtra("USERNAME", user.getUsername());
-                    intent.putExtra("EMAIL", user.getEmail());
-                    intent.putExtra("FULL_NAME", user.getFullName());
-                    intent.putExtra("BIO", user.getBio());
-                    startActivity(intent);
-                    finish();
-                }
+                // Hiển thị thông báo thành công
+                showSuccessSnackbar("Welcome back, " + user.getUsername() + "!");
+
+                // Delay một chút để user thấy thông báo thành công
+                coordinatorLayout.postDelayed(() -> {
+                    if ("admin".equals(user.getRole())) {
+                        Intent intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
+                        intent.putExtra("USER_ID", user.getId());
+                        intent.putExtra("USERNAME", user.getUsername());
+                        intent.putExtra("EMAIL", user.getEmail());
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                        intent.putExtra("USER_ID", user.getId());
+                        intent.putExtra("USERNAME", user.getUsername());
+                        intent.putExtra("EMAIL", user.getEmail());
+                        intent.putExtra("FULL_NAME", user.getFullName());
+                        intent.putExtra("BIO", user.getBio());
+                        startActivity(intent);
+                        finish();
+                    }
+                }, 1000); // Delay 1 giây
             }
 
             @Override
             public void onError(String error) {
                 signInButton.setEnabled(true);
                 signInButton.setText("Sign In");
-                Toast.makeText(LoginActivity.this, "❌ " + error, Toast.LENGTH_LONG).show();
+                showErrorSnackbar(error);
             }
         });
     }
@@ -99,5 +97,22 @@ public class LoginActivity extends AppCompatActivity {
     private void goToSignUp() {
         Intent intent = new Intent(this, SignUpActivity.class);
         startActivity(intent);
+    }
+
+    // Thêm các method để hiển thị Snackbar đẹp
+    private void showSuccessSnackbar(String message) {
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, message, Snackbar.LENGTH_LONG);
+        snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
+    }
+
+    private void showErrorSnackbar(String message) {
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, "❌ " + message, Snackbar.LENGTH_LONG);
+        snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.setAction("DISMISS", v -> snackbar.dismiss());
+        snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

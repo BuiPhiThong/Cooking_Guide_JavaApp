@@ -2,11 +2,11 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.adapter.DishAdapter;
 import com.example.myapplication.dao.DishDAO;
 import com.example.myapplication.entity.Dish;
@@ -58,11 +58,15 @@ public class FavoritesActivity extends AppCompatActivity implements DishAdapter.
                 favoritesList.clear();
                 favoritesList.addAll(dishes);
                 dishAdapter.notifyDataSetChanged();
+
+                if (dishes.isEmpty()) {
+                    showSnackbar("💔 Chưa có món ăn yêu thích nào", false);
+                }
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(FavoritesActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi tải danh sách yêu thích: " + error, false);
             }
         });
     }
@@ -78,15 +82,41 @@ public class FavoritesActivity extends AppCompatActivity implements DishAdapter.
         DishDAO.toggleFavorite(currentUserId, dish.getId(), new DishDAO.FavoriteCallback() {
             @Override
             public void onSuccess(String message) {
-                Toast.makeText(FavoritesActivity.this, message, Toast.LENGTH_SHORT).show();
+                showSnackbar("💔 Đã xóa khỏi danh sách yêu thích", true);
                 // Reload danh sách favorites
                 loadFavorites();
             }
 
             @Override
             public void onError(String error) {
-                Toast.makeText(FavoritesActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi xóa khỏi yêu thích: " + error, false);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload danh sách khi quay lại từ DishDetailActivity
+        loadFavorites();
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+        Snackbar snackbar;
+
+        if (isSuccess) {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+        }
+
+        snackbar.setTextColor(getResources().getColor(android.R.color.white));
+        snackbar.show();
     }
 }

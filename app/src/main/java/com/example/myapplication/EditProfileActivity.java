@@ -6,11 +6,12 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
 import com.example.myapplication.dao.UserDAO;
 import com.example.myapplication.entity.User;
 
@@ -24,6 +25,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private User currentUser;
     private static final int REQUEST_PICK_IMAGE = 1001;
     private String avatarPath; // Đường dẫn ảnh local
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,18 +53,19 @@ public class EditProfileActivity extends AppCompatActivity {
 
             @Override
             public void onError(String error) {
-                Toast.makeText(EditProfileActivity.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi: " + error, false);
             }
         });
 
-
         saveProfileButton.setOnClickListener(v -> saveProfile());
     }
+
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "Chọn ảnh đại diện"), REQUEST_PICK_IMAGE);
     }
+
     private void saveProfile() {
         String username = editUsername.getText().toString().trim();
         String fullName = editFullName.getText().toString().trim();
@@ -70,7 +73,7 @@ public class EditProfileActivity extends AppCompatActivity {
         String bio = editBio.getText().toString().trim();
 
         if (username.isEmpty() || fullName.isEmpty() || email.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+            showSnackbar("⚠️ Vui lòng nhập đầy đủ thông tin", false);
             return;
         }
 
@@ -100,21 +103,26 @@ public class EditProfileActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
-                    Toast.makeText(EditProfileActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_OK);
-                    finish();
+                    showSnackbar("✅ Cập nhật thành công", true);
+
+                    // Delay 2 giây trước khi đóng activity để user thấy được thông báo
+                    new android.os.Handler().postDelayed(() -> {
+                        setResult(RESULT_OK);
+                        finish();
+                    }, 2000); // 2 giây
                 });
             }
 
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
-                    Toast.makeText(EditProfileActivity.this, "Lỗi cập nhật: " + error, Toast.LENGTH_SHORT).show();
+                    showSnackbar("❌ Lỗi cập nhật: " + error, false);
                     saveProfileButton.setEnabled(true);
                     saveProfileButton.setText("Lưu thay đổi");
                 });
             }
         });
+
     }
 
     private void loadUserAvatar(String avatarUrl) {
@@ -134,8 +142,6 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -148,7 +154,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 // Lưu ảnh vào internal storage và lấy đường dẫn
                 avatarPath = saveProfileImage(bitmap, "avatar_user_" + userId + ".png");
             } catch (Exception e) {
-                Toast.makeText(this, "Lỗi chọn ảnh", Toast.LENGTH_SHORT).show();
+                showSnackbar("❌ Lỗi chọn ảnh", false);
             }
         }
     }
@@ -161,6 +167,26 @@ public class EditProfileActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // Method để hiển thị Snackbar đẹp
+    // Method để hiển thị Snackbar đẹp với thời gian hiển thị lâu hơn
+    private void showSnackbar(String message, boolean isSuccess) {
+        View rootView = findViewById(android.R.id.content);
+
+        if (isSuccess) {
+            Snackbar snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_green_dark));
+            snackbar.setTextColor(getResources().getColor(android.R.color.white));
+            snackbar.show();
+        } else {
+            Snackbar snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_INDEFINITE);
+            snackbar.setBackgroundTint(getResources().getColor(android.R.color.holo_red_dark));
+            snackbar.setAction("ĐÓNG", v -> snackbar.dismiss());
+            snackbar.setActionTextColor(getResources().getColor(android.R.color.white));
+            snackbar.setTextColor(getResources().getColor(android.R.color.white));
+            snackbar.show();
         }
     }
 
