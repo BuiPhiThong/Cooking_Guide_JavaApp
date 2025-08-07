@@ -68,6 +68,13 @@
             android:inputType="textMultiLine"
             android:layout_marginBottom="16dp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mức độ khó"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="8dp" />
 
         <Spinner
             android:id="@+id/difficultySpinner"

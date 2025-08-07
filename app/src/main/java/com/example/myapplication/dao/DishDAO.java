@@ -359,7 +359,7 @@ public class DishDAO {
                 try {
                     Connection connection = DatabaseConnection.getConnection();
                     if (connection != null) {
-                        String query = "SELECT TOP 2 * FROM Dishes ORDER BY created_at DESC";
+                        String query = "SELECT TOP 3 * FROM Dishes ORDER BY created_at DESC";
                         PreparedStatement statement = connection.prepareStatement(query);
                         ResultSet resultSet = statement.executeQuery();
 
